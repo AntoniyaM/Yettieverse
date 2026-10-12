@@ -1,0 +1,249 @@
+// Story content: items, wearables, characters, quests and dialog.
+// Everything the player reads lives here, so writing new quests is mostly data.
+
+export type ItemId = 'carrot' | 'berry' | 'dewdrop'
+export type CosmeticId = 'chefhat' | 'bow' | 'crown' | 'shades'
+export type AbilityId = 'dash' | 'floatie' | 'boots'
+export type QuestId = 'soup' | 'berries' | 'steps' | 'hydrate' | 'pip' | 'bells'
+export type NpcId = 'broc' | 'avo' | 'drip' | 'mama' | 'pear' | 'shelly' | 'pip'
+export type Speaker = NpcId | 'yettie' | 'narrator'
+
+export const ITEMS: Record<ItemId, { name: string; plural: string; icon: string }> = {
+  carrot: { name: 'Crunchy Carrot', plural: 'carrots', icon: 'item-carrot' },
+  berry: { name: 'Wild Strawberry', plural: 'strawberries', icon: 'item-berry' },
+  dewdrop: { name: 'Magic Dewdrop', plural: 'dewdrops', icon: 'item-dewdrop' },
+}
+
+export const COSMETICS: Record<CosmeticId, { name: string; slot: 'hat' | 'face'; icon: string; blurb: string }> = {
+  chefhat: { name: 'Chef Hat', slot: 'hat', icon: 'wear-chefhat', blurb: 'Smells faintly of soup.' },
+  bow: { name: "Pip's Lucky Bow", slot: 'hat', icon: 'wear-bow', blurb: 'Lucky. Probably.' },
+  crown: { name: 'Golden Crown', slot: 'hat', icon: 'wear-crown', blurb: 'Hero of the Yettieverse.' },
+  shades: { name: 'Racing Shades', slot: 'face', icon: 'wear-shades', blurb: 'Cool fluff, cooler eyewear.' },
+}
+
+export const ABILITIES: Record<AbilityId, { name: string; blurb: string; icon: string }> = {
+  dash: { name: 'Zoomy Sneakers', blurb: 'Hold Shift to dash.', icon: '👟' },
+  floatie: { name: 'Lucky Floatie', blurb: 'Swim across water.', icon: '🛟' },
+  boots: { name: 'Snow Boots', blurb: 'Stomp through snowdrifts.', icon: '🥾' },
+}
+
+export const NPCS: Record<NpcId, { name: string; portrait: string; idle: string[] }> = {
+  broc: {
+    name: 'Chef Broc',
+    portrait: 'npc-broc',
+    idle: ['The secret ingredient is love. And also carrots.', "Soup's on! Well, it will be. In about six hours."],
+  },
+  avo: {
+    name: 'Granny Avo',
+    portrait: 'npc-avo',
+    idle: [
+      "Did you know avocados are berries? I'm basically family with those strawberries.",
+      'Back in my day we walked up Frosty Peak. Both ways.',
+    ],
+  },
+  drip: {
+    name: 'Drip',
+    portrait: 'npc-drip-1',
+    idle: [
+      "Had a glass of water today? Just asking. I'm literally made of it.",
+      'Toss 5 sparkles in the fountain and make a wish!',
+    ],
+  },
+  mama: {
+    name: 'Mama Yettie',
+    portrait: 'npc-mama',
+    idle: ['Remember to rest, sweetie. Even heroes need naps.', "Pip hasn't stopped talking about your swimming."],
+  },
+  pear: {
+    name: 'Professor Pear',
+    portrait: 'npc-pear',
+    idle: ["My research shows you're 100% delightful.", "Pear-haps we'll find more mysteries someday."],
+  },
+  shelly: {
+    name: 'Sir Shelly',
+    portrait: 'npc-shelly',
+    idle: ['Slow and steady. Mostly slow.', 'I once walked to the beach. Took me a fortnight.'],
+  },
+  pip: {
+    name: 'Pip',
+    portrait: 'npc-pip',
+    idle: ["When I grow up I'm gonna be as fluffy as you!", 'Mama says I can have a carrot later!'],
+  },
+}
+
+export interface DialogLine {
+  speaker: Speaker
+  text: string
+  choices?: string[]
+}
+const say = (speaker: Speaker, ...texts: string[]): DialogLine[] => texts.map((text) => ({ speaker, text }))
+
+export type Objective =
+  | { type: 'collect'; item: ItemId; count: number; where: string }
+  | { type: 'steps'; count: number }
+  | { type: 'flags'; flags: string[]; label: string }
+
+export interface QuestDef {
+  id: QuestId
+  title: string
+  giver: NpcId
+  requires: QuestId[]
+  summary: string
+  objective: Objective
+  reward: { sparkles: number; cosmetic?: CosmeticId; ability?: AbilityId }
+  // Shown before the quest is unlocked.
+  locked?: DialogLine[]
+  intro: DialogLine[]
+  waiting: DialogLine[]
+  done: DialogLine[]
+}
+
+export const QUESTS: QuestDef[] = [
+  {
+    id: 'soup',
+    title: "Soup's On!",
+    giver: 'broc',
+    requires: [],
+    summary: "Pick 5 crunchy carrots in Carrot Meadow (west of the plaza) for Chef Broc's Sunshine Soup.",
+    objective: { type: 'collect', item: 'carrot', count: 5, where: 'Carrot Meadow' },
+    reward: { sparkles: 15, cosmetic: 'chefhat' },
+    intro: [
+      ...say('broc', "Yettie! Thank goodness. I'm making my legendary Sunshine Soup and I'm OUT of carrots!"),
+      ...say('broc', 'Could you pick 5 crunchy carrots in Carrot Meadow? Just follow the road west.'),
+      ...say('yettie', '*determined fluff wiggle*'),
+    ],
+    waiting: say('broc', 'The pot is bubbling! 5 carrots from Carrot Meadow, west of here.'),
+    done: [
+      ...say('broc', 'Look at these beauties! Orange, crunchy, full of vitamin A. You will see in the dark!'),
+      ...say('broc', 'Here, take my spare chef hat. Every great cook needs one. Even a fluffy one.'),
+      ...say('broc', 'Oh, and Drip at the fountain looks a little... dry. Maybe say hi?'),
+    ],
+  },
+  {
+    id: 'berries',
+    title: 'Berry Good Friends',
+    giver: 'avo',
+    requires: [],
+    summary: 'Gather 8 wild strawberries along the trails of Whisper Woods for Granny Avo\'s jam.',
+    objective: { type: 'collect', item: 'berry', count: 8, where: 'Whisper Woods' },
+    reward: { sparkles: 15, ability: 'dash' },
+    intro: [
+      ...say('avo', "Oh, hello dearie! My old knees can't do Whisper Woods anymore."),
+      ...say('avo', 'Would you gather 8 wild strawberries for my famous jam? They grow along the forest trails, up north-west.'),
+      ...say('avo', 'Mind the trees. They whisper, but they never spill the tea.'),
+    ],
+    waiting: say('avo', 'Eight strawberries, sweetie. My jam jars are waiting!'),
+    done: [
+      ...say('avo', 'Oh, they smell like summer! Here, these were my zoomy sneakers back in the day.'),
+      ...say('avo', "Hold SHIFT to dash. Don't tell your Mama I gave you these."),
+    ],
+  },
+  {
+    id: 'steps',
+    title: 'Walk It Off',
+    giver: 'shelly',
+    requires: [],
+    summary: 'Take 1,000 steps anywhere on the island. Sir Shelly is counting. Slowly.',
+    objective: { type: 'steps', count: 1000 },
+    reward: { sparkles: 20, cosmetic: 'shades' },
+    intro: [
+      ...say('shelly', 'Ahem! Sir Shelly, champion walker, at your service.'),
+      ...say('shelly', 'Movement is medicine, young Yettie. Take 1,000 steps, anywhere you like, and I shall reward you handsomely.'),
+      ...say('shelly', "I'll wait here. I've already done my steps today. All four of them."),
+    ],
+    waiting: say('shelly', "Keep those fluffy feet moving! Every step counts. Literally. I'm counting."),
+    done: [
+      ...say('shelly', 'One thousand steps! Magnificent! Your heart thanks you. My shell salutes you.'),
+      ...say('shelly', 'These are my racing shades. Cool fluff deserves cool eyewear.'),
+    ],
+  },
+  {
+    id: 'hydrate',
+    title: 'Hydration Station',
+    giver: 'drip',
+    requires: ['soup'],
+    summary: 'Find the 4 magic Dewdrops (meadow, woods, shore and village) and refill the plaza fountain.',
+    objective: { type: 'collect', item: 'dewdrop', count: 4, where: 'all over the island' },
+    reward: { sparkles: 20, ability: 'floatie' },
+    locked: say('drip', '*sniff* ...The fountain is so dry. A hydration spirit without water. How embarrassing.'),
+    intro: [
+      ...say('drip', "Oh! Yettie! The fountain dried up, and I'm supposed to be the village's hydration spirit..."),
+      ...say('drip', '4 magic Dewdrops are hidden on the island: in the meadow, in the woods, by the shore and somewhere in the village.'),
+      ...say('drip', "Bring them back and we'll fill this fountain right up! Hydration is the best motivation!"),
+    ],
+    waiting: say('drip', 'Look for twinkly blue sparkles! Meadow, woods, shore, and one near Granny Avo\'s garden.'),
+    done: [
+      ...say('drip', '*SPLOOSH* We did it! The fountain is flowing again!'),
+      ...say('drip', 'You deserve my lucky floatie. Now you can swim across water!'),
+      ...say('drip', 'Psst. Mama Yettie seemed worried. Something about Pip?'),
+    ],
+  },
+  {
+    id: 'pip',
+    title: 'Lost & Fluffy',
+    giver: 'mama',
+    requires: ['hydrate'],
+    summary: 'Little Pip is stuck on the isle in the middle of Glimmer Lake (east). Swim out and bring Pip home.',
+    objective: { type: 'flags', flags: ['pipFollowing'], label: 'Find Pip on the lake isle' },
+    reward: { sparkles: 25, ability: 'boots', cosmetic: 'bow' },
+    locked: say('mama', 'Have you seen Pip, sweetie? Pip was chasing butterflies over by the lake...'),
+    intro: [
+      ...say('mama', 'Yettie! Pip chased a butterfly and now they are stuck on the little isle in Glimmer Lake!'),
+      ...say('mama', "With Drip's floatie you can swim out there. Please bring my little fluffball home!"),
+    ],
+    waiting: say('mama', 'Pip is on the isle in the middle of Glimmer Lake, east of the village. Please hurry!'),
+    done: [
+      ...say('mama', 'PIP! Oh, my little sprout! *the biggest group hug in Yettieverse history*'),
+      ...say('pip', 'Big Yettie swam SO fast! Like a fluffy boat!'),
+      ...say('mama', 'Take these snow boots. Professor Pear has been waiting for someone brave enough for Frosty Peak.'),
+      ...say('pip', "And my bow! It's lucky. Probably."),
+    ],
+  },
+  {
+    id: 'bells',
+    title: 'Peak Performance',
+    giver: 'pear',
+    requires: ['pip'],
+    summary: 'Stomp through the snowdrift gate and ring the 3 Wishing Bells on Frosty Peak.',
+    objective: { type: 'flags', flags: ['bell0', 'bell1', 'bell2'], label: 'Wishing Bells rung' },
+    reward: { sparkles: 50, cosmetic: 'crown' },
+    locked: say('pear', 'Hmm, hmm. The Wishing Bells on Frosty Peak have been silent for years. Pity nobody owns snow boots...'),
+    intro: [
+      ...say('pear', 'Ah, snow boots! Splendid! Now listen carefully. This is very scientific.'),
+      ...say('pear', 'Three Wishing Bells sit on Frosty Peak. Ring all three and the whole Yettieverse will light up!'),
+      ...say('pear', "The gate is just behind me, through the snowdrift. Do wear a scarf. Oh. You're a yeti. Never mind."),
+    ],
+    waiting: say('pear', 'Three bells, Yettie! Two trails, one summit. Science awaits!'),
+    done: [
+      ...say('pear', 'Did you see that?! The sparkles! The Yettieverse is GLOWING!'),
+      ...say('pear', 'By the power vested in me by the Academy of Fruit, I crown you Hero of the Yettieverse!'),
+    ],
+  },
+]
+
+export const PIP_LINES = {
+  found: [
+    ...say('pip', 'YETTIE!! I followed a butterfly and then the butterfly left and then I was on an island!'),
+    ...say('pip', "Can we go home? I'm hungry. And my fluff is damp."),
+    ...say('narrator', 'Pip is following you. Take Pip home to Mama Yettie!'),
+  ],
+  following: ['Are we there yet?', 'I like your floatie!', 'Mama is gonna be SO happy.', 'Wheee!'],
+}
+
+export const DOORS: Record<string, string> = {
+  broc: 'The door is warm. Something smells like soup in there.',
+  avo: "Locked. A little note says: 'Gone jamming.'",
+  mama: 'Home! Smells like cookies and cozy blankets.',
+}
+
+export const FORTUNES = [
+  'You will drink a glass of water very soon. Bold prediction.',
+  'A vegetable will bring you joy today.',
+  'Your next nap will be legendary.',
+  "Someone thinks your fluff is perfect. (It's Pip.)",
+  'Stretch a little. Your future self says thanks.',
+  'A great snack is in your near future. Probably a carrot.',
+  'You are exactly as fluffy as you need to be.',
+  'Good things come to those who walk.',
+  'The fountain foresees... a high five. Go find someone.',
+]

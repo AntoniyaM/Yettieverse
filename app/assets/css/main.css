@@ -1,0 +1,228 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Yv Text';
+  src: url('/fonts/jersey-10.woff2') format('woff2');
+  font-display: swap;
+  size-adjust: 128%;
+}
+@font-face {
+  font-family: 'Yv Logo';
+  src: url('/fonts/pixelify-sans-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* Small screens and touch devices get the compact HUD layout. */
+@custom-variant compact {
+  @media (max-width: 640px) {
+    @slot;
+  }
+  @media (pointer: coarse) {
+    @slot;
+  }
+}
+
+@theme {
+  --color-ink: #2b2340;
+  --color-ink-soft: #4a3f66;
+  --color-cream: #fff6e0;
+  --color-paper: #fffaf0;
+  --color-teal: #2ec4b6;
+  --color-teal-dark: #1e9488;
+  --color-mint: #9ff0e6;
+  --color-yellow: #ffd23f;
+  --color-gold: #c99a1a;
+  --color-pink: #ff7eb6;
+  --color-sky: #3d9be0;
+  --color-grass: #6abe4b;
+
+  --font-pixel: 'Yv Text', ui-monospace, monospace;
+  --font-logo: 'Yv Logo', 'Yv Text', monospace;
+
+  --text-xs--line-height: normal;
+  --text-sm--line-height: normal;
+  --text-base--line-height: normal;
+  --text-lg--line-height: normal;
+  --text-xl--line-height: normal;
+  --text-2xl--line-height: normal;
+
+  --animate-pop-in: pop-in 0.3s cubic-bezier(0.2, 1.6, 0.4, 1) backwards;
+  --animate-drift: drift 50s linear infinite;
+  --animate-yettie-idle: look 6s step-end infinite, hop 0.9s ease-in-out infinite;
+  --animate-shadow-pulse: shadow-pulse 0.9s ease-in-out infinite;
+  --animate-twinkle: twinkle 1.8s ease-in-out infinite;
+  --animate-wave: wave 2.4s ease-in-out infinite;
+  --animate-nudge: nudge 1.2s ease-in-out infinite;
+  --animate-blink: blink 0.8s steps(2) infinite;
+  --animate-fall: fall 2.4s cubic-bezier(0.3, 0.6, 0.6, 1) forwards;
+  --animate-bob: bob 1.2s ease-in-out infinite;
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.85) translateY(8px);
+    }
+  }
+
+  @keyframes drift {
+    to {
+      transform: translateX(calc(100vw + 400px));
+    }
+  }
+
+  /* Cycles the title Yettie through front, right and left frames of the sheet (scaled ×6). */
+  @keyframes look {
+    0% {
+      background-position: -384px 0;
+    }
+    40% {
+      background-position: -576px 0;
+    }
+    52% {
+      background-position: -384px 0;
+    }
+    75% {
+      background-position: -576px -192px;
+    }
+    87% {
+      background-position: -384px 0;
+    }
+  }
+
+  @keyframes hop {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes shadow-pulse {
+    50% {
+      transform: scaleX(0.82);
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.4) rotate(0);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1) rotate(45deg);
+    }
+  }
+
+  @keyframes wave {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-6px);
+    }
+  }
+
+  @keyframes nudge {
+    50% {
+      transform: translateY(-2px);
+    }
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fall {
+    to {
+      transform: translate(var(--drift), 105vh) rotate(var(--spin));
+    }
+  }
+
+  @keyframes bob {
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+}
+
+@utility pixelated {
+  image-rendering: pixelated;
+}
+
+@layer base {
+  html,
+  body {
+    @apply h-full bg-ink font-pixel text-ink;
+    /* Jersey has one weight; faux-bold smears the pixels. */
+    font-synthesis: none;
+    letter-spacing: 0.02em;
+    line-height: normal;
+    overscroll-behavior: none;
+  }
+  #__nuxt {
+    @apply h-full;
+  }
+  kbd {
+    @apply inline-block min-w-[18px] rounded border-2 border-b-3 border-ink bg-cream px-[5px] pt-[3px] pb-[2px] text-center font-pixel text-[11px]/none text-ink;
+  }
+}
+
+/* Shared chunky pixel UI pieces, used across the title screen and the HUD. */
+@layer components {
+  .px-panel {
+    @apply rounded-md border-3 border-ink bg-paper shadow-[inset_0_-4px_0_#f1e3c2,0_4px_0_var(--color-ink)];
+  }
+  .px-btn {
+    @apply cursor-pointer rounded-md border-3 border-ink bg-yellow px-4 py-2.5 font-pixel text-base/none text-ink shadow-[inset_0_-4px_0_rgb(0_0_0/0.18),0_4px_0_var(--color-ink)] transition-transform duration-[60ms] select-none hover:brightness-106 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-pink focus-visible:outline-dashed active:translate-y-[3px] active:shadow-[inset_0_-2px_0_rgb(0_0_0/0.18),0_1px_0_var(--color-ink)] disabled:cursor-default disabled:opacity-50;
+  }
+  .px-btn-teal {
+    @apply bg-teal text-white text-shadow-[0_2px_0_var(--color-teal-dark)];
+  }
+  .px-btn-ghost {
+    @apply bg-cream;
+  }
+  .px-btn-sm {
+    @apply px-2.5 py-1.5 text-[13px];
+  }
+  .modal-backdrop {
+    @apply fixed inset-0 z-40 grid place-items-center bg-ink/55 p-4 backdrop-blur-[2px];
+  }
+}
+
+/* Named Vue transitions shared by the modals and the HUD prompt. */
+.pop-enter-active {
+  animation: pop-in 0.22s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.pop-leave-active {
+  animation: pop-in 0.12s reverse ease-in;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

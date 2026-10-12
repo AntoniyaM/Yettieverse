@@ -1,0 +1,8 @@
+.idea
+node_modules
+.nuxt
+.output
+.data
+dist
+.DS_Store
+scripts/minimap.png
