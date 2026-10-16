@@ -43,6 +43,15 @@ const ready = computed(() => tracked.value && save.quests[tracked.value.id] === 
       </template>
     </button>
 
+    <button
+      class="px-panel pointer-events-auto absolute bottom-3 left-3 w-[200px] cursor-pointer p-1 compact:top-[108px] compact:right-3 compact:bottom-auto compact:left-auto compact:w-[124px]"
+      aria-label="Open the map"
+      @click="ui.panel = 'map'"
+    >
+      <HudMapView class="rounded-[3px]" />
+      <kbd class="absolute right-2 bottom-2 compact:hidden">Tab</kbd>
+    </button>
+
     <div class="pointer-events-auto absolute right-3 bottom-3 flex gap-2 compact:top-16 compact:right-auto compact:bottom-auto compact:left-3 compact:[&_kbd]:hidden">
       <component :is="DevTools" v-if="DevTools" />
       <button class="px-btn px-btn-ghost px-btn-sm" @click="ui.panel = 'quests'"><kbd class="mr-0.5">Q</kbd> Quests</button>

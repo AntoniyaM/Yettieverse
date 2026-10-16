@@ -12,6 +12,7 @@ import {
   ui,
 } from '../state'
 import { indicatorFor, knockDoor, readSign, ringBell, talkTo, useFountain } from '../story'
+import { paintMinimap } from '../world/minimap'
 import { MAP_H, MAP_W, T, TILE, WATER_TILES, ZONES, buildWorld, isWater, type Point, type World } from '../world/world'
 import { Ambience, unlit } from './Ambience'
 
@@ -75,6 +76,9 @@ export class WorldScene extends Phaser.Scene {
 
   create() {
     this.world = buildWorld()
+    const { src, labels } = paintMinimap(this.world)
+    ui.map.src = src
+    ui.map.labels = labels
     const meta = this.registry.get('yettieMeta') as FrameMeta[]
     const W = MAP_W * TILE, H = MAP_H * TILE
 
@@ -147,6 +151,7 @@ export class WorldScene extends Phaser.Scene {
       bus.on('pip-follow', () => {
         this.trail = []
         this.hearts.explode(5, this.pipPos.x, this.pipPos.y - 14)
+        this.refreshIndicators()
       }),
       bus.on('pip-home', () => this.pipGoHome()),
       bus.on('bell', (i) => this.bellRung(i as number)),
@@ -415,6 +420,11 @@ export class WorldScene extends Phaser.Scene {
     }
     const drip = this.npcs.get('drip')
     if (drip) drip.sprite.setFrame(save.quests.hydrate === 'done' ? 1 : 0)
+    // The map only shows friends you can do something with: new quests and finished ones.
+    ui.map.markers = (Object.entries(this.world.spawns.npcs) as [NpcId, Point][]).flatMap(([id, p]) => {
+      const kind = indicatorFor(id)
+      return kind === 'available' || kind === 'ready' ? [{ id, x: p.x + 0.5, y: p.y + 0.5, kind }] : []
+    })
   }
 
   private collect(pk: Pickup) {
@@ -545,6 +555,9 @@ export class WorldScene extends Phaser.Scene {
       if (Math.hypot(pk.sprite.x - this.player.x, pk.sprite.y - this.player.y) < 12) this.collect(pk)
     }
     this.ambience.update(time, dt, this.player)
+    // Quarter-tile steps: smooth enough for the map, and Vue only re-renders when it changes.
+    ui.map.player.x = Math.round((this.player.x / TILE) * 4) / 4
+    ui.map.player.y = Math.round((this.player.y / TILE) * 4) / 4
     const lampFrame = this.ambience.night > 0.25 ? 1 : 0
     for (const l of this.lamps) if (l.frame.name !== String(lampFrame)) l.setFrame(lampFrame)
   }

@@ -51,7 +51,7 @@ const cloudLabel = computed(
           <div><kbd>←↑↓→</kbd> <kbd>WASD</kbd> Move</div>
           <div><kbd>Space</kbd> <kbd>E</kbd> Talk / interact</div>
           <div><kbd>Shift</kbd> Dash <em v-if="!save.abilities.dash" class="text-ink-soft">(needs sneakers)</em></div>
-          <div><kbd>Q</kbd> Quests · <kbd>C</kbd> Wardrobe · <kbd>M</kbd> Mute</div>
+          <div><kbd>Q</kbd> Quests · <kbd>C</kbd> Wardrobe · <kbd>Tab</kbd> Map · <kbd>M</kbd> Mute</div>
         </div>
 
         <div class="grid gap-2">

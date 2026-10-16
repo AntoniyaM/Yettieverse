@@ -15,11 +15,14 @@ provide('toggleMute', toggleMute)
 let dev: typeof import('~/game/dev') | null = null
 
 function onKey(e: KeyboardEvent) {
+  // Tab opens the map, so keep the browser from moving focus.
+  if (e.key === 'Tab') e.preventDefault()
   if (!ui.ready || ui.dialog || ui.reward || ui.ending || e.repeat) return
   const k = e.key.toLowerCase()
   if (k === 'escape') ui.panel = ui.panel ? null : 'menu'
   else if (k === 'q' || k === 'j') ui.panel = ui.panel === 'quests' ? null : 'quests'
   else if (k === 'c' || k === 'i') ui.panel = ui.panel === 'wardrobe' ? null : 'wardrobe'
+  else if (k === 'tab') ui.panel = ui.panel === 'map' ? null : 'map'
   else if (k === 'm') toggleMute()
   else if (k === 'n' && dev) dev.toggleDayNight()
   else return
@@ -46,6 +49,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       <HudDialogBox />
       <HudQuestLog />
       <HudWardrobe />
+      <HudMapPanel />
       <HudPauseMenu />
       <HudRewardModal />
       <HudEndingCard />

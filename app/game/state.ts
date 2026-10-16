@@ -159,6 +159,13 @@ export interface Toast {
   text: string
   icon?: string
 }
+export interface MapMarker {
+  id: string
+  // Position in tiles.
+  x: number
+  y: number
+  kind: 'available' | 'ready'
+}
 export interface RewardView {
   title: string
   sparkles: number
@@ -168,7 +175,7 @@ export interface RewardView {
 export const ui = reactive({
   ready: false,
   dialog: null as null | { lines: DialogLine[]; index: number; resolve: (choice: number) => void },
-  panel: null as null | 'quests' | 'wardrobe' | 'menu',
+  panel: null as null | 'quests' | 'wardrobe' | 'menu' | 'map',
   reward: null as null | RewardView,
   ending: false,
   toasts: [] as Toast[],
@@ -181,6 +188,13 @@ export const ui = reactive({
   cloud: 'idle' as 'idle' | 'saving' | 'saved' | 'error',
   cloudAt: 0,
   muted: false,
+  // The island map, plus Yettie and quest givers on it, in tiles.
+  map: {
+    src: '',
+    labels: [] as { id: string; name: string; x: number; y: number }[],
+    player: { x: 0, y: 0 },
+    markers: [] as MapMarker[],
+  },
   // Front-frame measurements, for the wardrobe preview.
   yettieFront: null as null | { top: number; cx: number; eyes: { cx: number; cy: number } | null },
 })

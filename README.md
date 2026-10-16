@@ -28,11 +28,12 @@ app/game/
   story.ts           what talking/poking does (quest state machine)
   state.ts           reactive save + UI state, persistence, event bus (no Phaser import)
   world/world.ts     seeded island builder: zones, roads, gates, pickup spots
+  world/minimap.ts   paints the island as a map image (colours per tile type)
   assets.ts          every image the game loads: texture key → file, frame sizes
   entities/Yettie.ts hero + Pip: animation, blink, hats, floatie
   scenes/            Boot (texture prep), World (gameplay), Ambience (day/night lighting, particles)
   audio.ts           WebAudio chiptune
-app/components/hud/  dialog box, quest log, wardrobe, menus, touch controls
+app/components/hud/  dialog box, quest log, wardrobe, map, menus, touch controls
 server/api/saves/    GET/PUT cloud saves (Nitro storage, fs driver by default)
 scripts/             world reachability check
 ```
