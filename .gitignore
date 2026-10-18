@@ -6,3 +6,6 @@ node_modules
 dist
 .DS_Store
 scripts/minimap.png
+.env
+.env.*
+!.env.example

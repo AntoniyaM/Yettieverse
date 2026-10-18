@@ -12,6 +12,7 @@
     "check:world": "node scripts/check-world.ts scripts/minimap.png"
   },
   "dependencies": {
+    "firebase-admin": "^14.5.0",
     "nuxt": "^4.5.2",
     "phaser": "^4.2.1",
     "vue": "^3.5.43",

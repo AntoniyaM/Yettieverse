@@ -21,9 +21,9 @@ export default defineNuxtConfig({
       ],
     },
   },
-  nitro: {
-    // Cloud saves. Swap the driver (redis, cloudflare-kv, vercel-kv, …) when deploying.
-    storage: { saves: { driver: 'fs', base: './.data/saves' } },
+  runtimeConfig: {
+    // Server-only Firebase service account for cloud saves. Set via NUXT_FIREBASE_* env vars (see .env.example).
+    firebase: { projectId: '', clientEmail: '', privateKey: '' },
   },
   vite: {
     plugins: [tailwindcss()],

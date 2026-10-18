@@ -15,7 +15,7 @@ pnpm build && node .output/server/index.mjs
 | App shell | **Nuxt 4** | Title page is SSR'd; `/play` is client-only (`routeRules`), since a canvas gains nothing from SSR |
 | Game | **Phaser 4.2** (WebGL, Arcade physics, tilemaps) | Lazy-loaded only on `/play` |
 | HUD / dialogs | **Vue** components over the canvas | They read the same reactive state the game writes |
-| Saves | `localStorage` autosave + **Nitro** `/api/saves/:code` | Cloud backup by a shareable code like `ABCD-2345`, no accounts |
+| Saves | `localStorage` autosave + **Nitro** `/api/saves/:code` → **Firestore** | Cloud backup by a shareable code like `ABCD-2345`, no accounts |
 | Fonts | Jersey 10 (UI) and Pixelify Sans (logo), self-hosted in `public/fonts` | Both OFL-licensed |
 | Art | PNGs in `public/sprites/` and `public/tiles/` | One file per sprite, plus one tileset; edit them in any pixel-art editor |
 | Audio | Generated in code | Chiptune SFX and music via WebAudio, no audio files |
@@ -34,7 +34,7 @@ app/game/
   scenes/            Boot (texture prep), World (gameplay), Ambience (day/night lighting, particles)
   audio.ts           WebAudio chiptune
 app/components/hud/  dialog box, quest log, wardrobe, map, menus, touch controls
-server/api/saves/    GET/PUT cloud saves (Nitro storage, fs driver by default)
+server/api/saves/    GET/PUT cloud saves (Firestore via firebase-admin, server only)
 scripts/             world reachability check
 ```
 
@@ -74,4 +74,5 @@ Light sources are point lights added via `Ambience.addGlow()`: windows, street l
 - `__yettie` is on `window` in dev: `__yettie.save`, `__yettie.ui`, `__yettie.world().player.body.setPosition(x, y)`.
 - After changing the Phaser version, clear Vite's pre-bundle cache (`rm -rf node_modules/.cache/vite`). Otherwise dev keeps serving the old copy.
 - Wipe progress: `localStorage.removeItem('yettieverse:save')`.
-- Deploying: change the `saves` storage driver in `nuxt.config.ts` (Redis, Cloudflare KV, Vercel KV…). The fs driver writes to `.data/saves`.
+- Cloud saves: copy `.env.example` to `.env` and fill in a Firebase service account (Project settings → Service accounts → Generate new private key). Saves live in the `save_codes` collection, one document per code. Firestore rules should deny all access: only the server reads and writes, via the Admin SDK.
+- Deploying: set the same three `NUXT_FIREBASE_*` variables in your host's environment. Without them, cloud saves answer 503 and the game keeps saving locally.
