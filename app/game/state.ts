@@ -44,13 +44,13 @@ const LOCAL_KEY = 'yettieverse:save'
 const PREFS_KEY = 'yettieverse:prefs'
 
 // Save model.
-export function generateCode() {
+export const generateCode = () => {
   const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   const part = () => Array.from({ length: 4 }, () => abc[Math.floor(Math.random() * abc.length)]).join('')
   return `${part()}-${part()}`
 }
 
-export function newSave(): SaveData {
+export const newSave = (): SaveData => {
   const now = Date.now()
   return {
     version: 1,
@@ -62,7 +62,7 @@ export function newSave(): SaveData {
     steps: 0,
     playTime: 0,
     clock: 0.12,
-    inventory: { carrot: 0, berry: 0, dewdrop: 0 },
+    inventory: { carrot: 0, berry: 0, dewdrop: 0, moonpetal: 0 },
     collected: [],
     quests: Object.fromEntries(QUESTS.map((q) => [q.id, q.requires.length ? 'locked' : 'available'])) as Record<
       QuestId,
@@ -78,7 +78,7 @@ export function newSave(): SaveData {
 }
 
 // Fills gaps when an older/partial save is loaded.
-function normalize(data: Partial<SaveData>): SaveData {
+const normalize = (data: Partial<SaveData>): SaveData => {
   const base = newSave()
   return {
     ...base,
@@ -91,7 +91,7 @@ function normalize(data: Partial<SaveData>): SaveData {
   }
 }
 
-export function readLocalSave(): SaveData | null {
+export const readLocalSave = (): SaveData | null => {
   try {
     const raw = localStorage.getItem(LOCAL_KEY)
     return raw ? normalize(JSON.parse(raw)) : null
@@ -100,7 +100,7 @@ export function readLocalSave(): SaveData | null {
   }
 }
 
-export function writeLocalSave(data: SaveData) {
+export const writeLocalSave = (data: SaveData) => {
   try {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(data))
   } catch {
@@ -108,23 +108,23 @@ export function writeLocalSave(data: SaveData) {
   }
 }
 
-export async function fetchCloudSave(code: string): Promise<SaveData> {
+export const fetchCloudSave = async (code: string): Promise<SaveData> => {
   const data = await $fetch<SaveData>(`/api/saves/${encodeURIComponent(code.trim().toUpperCase())}`)
   return normalize(data)
 }
 
 export const save = reactive<SaveData>(newSave())
 
-export function loadIntoState(data: SaveData) {
+export const loadIntoState = (data: SaveData) => {
   Object.assign(save, normalize(data))
 }
 
-export function persist() {
+export const persist = () => {
   save.updatedAt = Date.now()
   writeLocalSave(JSON.parse(JSON.stringify(save)))
 }
 
-export async function pushCloud() {
+export const pushCloud = async () => {
   persist()
   ui.cloud = 'saving'
   try {
@@ -138,14 +138,14 @@ export async function pushCloud() {
 
 // Prefs (per device, not part of the save).
 
-export function readPrefs(): { muted: boolean } {
+export const readPrefs = (): { muted: boolean } => {
   try {
     return { muted: false, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') }
   } catch {
     return { muted: false }
   }
 }
-export function writePrefs(p: { muted: boolean }) {
+export const writePrefs = (p: { muted: boolean }) => {
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify(p))
   } catch {
@@ -184,6 +184,8 @@ export const ui = reactive({
   prompt: '',
   touch: { x: 0, y: 0, dash: false },
   inputLockedUntil: 0,
+  // True while the screen is dark during a nap.
+  napping: false,
   portraits: markRaw({}) as Record<string, string>,
   cloud: 'idle' as 'idle' | 'saving' | 'saved' | 'error',
   cloudAt: 0,
@@ -199,10 +201,10 @@ export const ui = reactive({
   yettieFront: null as null | { top: number; cx: number; eyes: { cx: number; cy: number } | null },
 })
 
-export const isBlocking = () => !!(ui.dialog || ui.panel || ui.reward || ui.ending)
+export const isBlocking = () => !!(ui.dialog || ui.panel || ui.reward || ui.ending || ui.napping)
 
 let toastId = 0
-export function toast(text: string, icon?: string) {
+export const toast = (text: string, icon?: string) => {
   const t = { id: ++toastId, text, icon }
   ui.toasts.push(t)
   setTimeout(() => {
@@ -212,19 +214,19 @@ export function toast(text: string, icon?: string) {
 }
 
 // Opens the dialog box; resolves with the picked choice index (or -1).
-export function say(lines: DialogLine[]): Promise<number> {
+export const say = (lines: DialogLine[]): Promise<number> => {
   return new Promise((resolve) => {
     ui.dialog = { lines, index: 0, resolve }
   })
 }
-export function closeDialog(choice = -1) {
+export const closeDialog = (choice = -1) => {
   const d = ui.dialog
   ui.dialog = null
   ui.inputLockedUntil = performance.now() + 200
   d?.resolve(choice)
 }
 
-export function speakerName(id: string) {
+export const speakerName = (id: string) => {
   if (id === 'yettie') return 'Yettie'
   if (id === 'narrator') return ''
   return NPCS[id as keyof typeof NPCS]?.name ?? id
@@ -247,7 +249,7 @@ export const bus = {
 // Quest engine.
 export const questDef = (id: QuestId) => QUESTS.find((q) => q.id === id)!
 
-export function questProgress(q: QuestDef): { have: number; need: number; label: string; icon?: string } {
+export const questProgress = (q: QuestDef): { have: number; need: number; label: string; icon?: string } => {
   const o = q.objective
   if (o.type === 'collect')
     return { have: Math.min(save.inventory[o.item], o.count), need: o.count, label: ITEMS[o.item].plural, icon: ITEMS[o.item].icon }
@@ -259,7 +261,7 @@ export function questProgress(q: QuestDef): { have: number; need: number; label:
 }
 
 // Unlocks quests whose requirements are done, and flags active ones as ready.
-export function refreshQuests() {
+export const refreshQuests = () => {
   for (const q of QUESTS) {
     const st = save.quests[q.id]
     if (st === 'locked' && q.requires.every((r) => save.quests[r] === 'done')) {
@@ -277,7 +279,7 @@ export function refreshQuests() {
   }
 }
 
-export function acceptQuest(id: QuestId) {
+export const acceptQuest = (id: QuestId) => {
   save.quests[id] = 'active'
   save.questStart[id] = save.steps
   toast(`New quest: ${questDef(id).title}`, 'ind-available')
@@ -286,7 +288,7 @@ export function acceptQuest(id: QuestId) {
   refreshQuests()
 }
 
-export function completeQuest(id: QuestId) {
+export const completeQuest = (id: QuestId) => {
   const q = questDef(id)
   if (q.objective.type === 'collect') save.inventory[q.objective.item] -= q.objective.count
   save.quests[id] = 'done'
@@ -311,26 +313,24 @@ export function completeQuest(id: QuestId) {
   void pushCloud()
 }
 
-export function addItem(item: ItemId, pickupId: string) {
+export const addItem = (item: ItemId, pickupId: string) => {
   if (save.collected.includes(pickupId)) return
   save.collected.push(pickupId)
   save.inventory[item]++
   refreshQuests()
 }
 
-export function setFlag(flag: string) {
+export const setFlag = (flag: string) => {
   if (save.flags[flag]) return
   save.flags[flag] = true
   refreshQuests()
 }
 
-// The quest shown in the HUD tracker: ready first, then active, in story order.
-export function trackedQuest() {
-  return (
-    QUESTS.find((q) => save.quests[q.id] === 'ready') ?? QUESTS.find((q) => save.quests[q.id] === 'active') ?? null
-  )
+// The quests shown in the HUD tracker: every ready one first, then every active one, in story order.
+export const trackedQuests = () => {
+  return [...QUESTS.filter((q) => save.quests[q.id] === 'ready'), ...QUESTS.filter((q) => save.quests[q.id] === 'active')]
 }
 
-export function setPortraits(p: Record<string, string>) {
+export const setPortraits = (p: Record<string, string>) => {
   ui.portraits = markRaw(p)
 }

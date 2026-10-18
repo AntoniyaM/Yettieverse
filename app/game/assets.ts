@@ -16,6 +16,7 @@ export const IMAGES: Record<string, string> = {
   'wear-crown': '/sprites/wearables/crown.png',
   'wear-bow': '/sprites/wearables/bow.png',
   'wear-shades': '/sprites/wearables/shades.png',
+  'wear-nightcap': '/sprites/wearables/nightcap.png',
   floatie: '/sprites/wearables/floatie.png',
   sign: '/sprites/props/sign.png',
   'house-broc': '/sprites/props/house-broc.png',
@@ -47,6 +48,8 @@ export const SHEETS: Record<string, { path: string; frameWidth: number; frameHei
   'yettie-mama-blink': yettie('/sprites/characters/yettie-mama-blink.png'),
   'yettie-pip': yettie('/sprites/characters/yettie-pip.png'),
   'yettie-pip-blink': yettie('/sprites/characters/yettie-pip-blink.png'),
+  // Moonpetal: frame 0 is a closed bud (day), frame 1 is open (night).
+  'item-moonpetal': { path: '/sprites/items/moonpetal.png', frameWidth: 9, frameHeight: 12 },
   // Drip: frame 0 is sad, frame 1 is happy.
   'npc-drip': { path: '/sprites/characters/drip.png', frameWidth: 13, frameHeight: 17 },
   // Lamp: frame 0 is off (day), frame 1 is lit.

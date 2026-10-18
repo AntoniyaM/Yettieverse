@@ -7,7 +7,7 @@ const bySlot = (slot: 'hat' | 'face') => (Object.keys(COSMETICS) as CosmeticId[]
 const source = (id: CosmeticId) => QUESTS.find((q) => q.reward.cosmetic === id)
 const abilitySource = (id: AbilityId) => QUESTS.find((q) => q.reward.ability === id)
 
-function wear(slot: 'hat' | 'face', id: CosmeticId | null) {
+const wear = (slot: 'hat' | 'face', id: CosmeticId | null) => {
   save.wearing[slot] = id
 }
 const front = computed(() => ui.yettieFront)

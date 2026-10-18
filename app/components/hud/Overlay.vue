@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { NPCS } from '~/game/data'
-import { questProgress, save, trackedQuest, ui } from '~/game/state'
+import { questProgress, save, trackedQuests, ui } from '~/game/state'
 
 const toggleMute = inject<() => void>('toggleMute')!
 // Dev-only tools. The import sits in a branch the production build removes.
 const DevTools = import.meta.dev ? defineAsyncComponent(() => import('./DevTools.vue')) : null
-const tracked = computed(() => trackedQuest())
-const progress = computed(() => (tracked.value ? questProgress(tracked.value) : null))
-const ready = computed(() => tracked.value && save.quests[tracked.value.id] === 'ready')
+const tracked = computed(() =>
+  trackedQuests().map((q) => ({ q, ready: save.quests[q.id] === 'ready', progress: questProgress(q) })),
+)
 </script>
 
 <template>
@@ -21,27 +21,33 @@ const ready = computed(() => tracked.value && save.quests[tracked.value.id] === 
       <div v-if="ui.zone" class="border-l-2 border-dashed border-[#e3d3ae] pl-2.5 text-sm text-ink-soft compact:hidden">{{ ui.zone }}</div>
     </div>
 
-    <button
-      v-if="tracked"
-      class="px-panel pointer-events-auto absolute top-3 right-3 w-[min(260px,calc(100vw-24px))] cursor-pointer px-3 pt-2 pb-2.5 text-left compact:top-auto compact:bottom-[168px] compact:w-[200px]"
-      :class="{ 'animate-nudge bg-[#eaffd8]': ready }"
-      @click="ui.panel = 'quests'"
+    <div
+      v-if="tracked.length"
+      class="absolute top-3 right-3 flex w-[min(260px,calc(100vw-24px))] flex-col gap-2 compact:top-auto compact:bottom-[168px] compact:w-[200px] compact:gap-1.5"
     >
-      <div class="flex items-center gap-1.5 text-[15px]">
-        <img class="pixelated w-3.5" :src="ui.portraits[ready ? 'ind-ready' : 'ind-active']" alt="">
-        {{ tracked.title }}
-      </div>
-      <div v-if="ready" class="mt-1 flex items-center gap-1.5 text-[13px]">Return to {{ NPCS[tracked.giver].name }}!</div>
-      <template v-else-if="progress">
-        <div class="mt-1 flex items-center gap-1.5 text-[13px]">
-          <img v-if="progress.icon" class="pixelated w-3" :src="ui.portraits[progress.icon]" alt="">
-          {{ progress.have.toLocaleString() }}/{{ progress.need.toLocaleString() }} {{ progress.label }}
+      <button
+        v-for="{ q, ready, progress } in tracked"
+        :key="q.id"
+        class="px-panel pointer-events-auto cursor-pointer px-3 pt-2 pb-2.5 text-left compact:px-2.5 compact:py-1.5"
+        :class="{ 'animate-nudge bg-[#eaffd8]': ready }"
+        @click="ui.panel = 'quests'"
+      >
+        <div class="flex items-center gap-1.5 text-[15px]">
+          <img class="pixelated w-3.5" :src="ui.portraits[ready ? 'ind-ready' : 'ind-active']" alt="">
+          {{ q.title }}
         </div>
-        <div class="mt-1.5 h-2 overflow-hidden rounded-[3px] border-2 border-ink bg-cream">
-          <span class="block h-full bg-teal transition-[width] duration-300" :style="{ width: `${(progress.have / progress.need) * 100}%` }" />
-        </div>
-      </template>
-    </button>
+        <div v-if="ready" class="mt-1 flex items-center gap-1.5 text-[13px]">Return to {{ NPCS[q.giver].name }}!</div>
+        <template v-else>
+          <div class="mt-1 flex items-center gap-1.5 text-[13px]">
+            <img v-if="progress.icon" class="pixelated w-3" :src="ui.portraits[progress.icon]" alt="">
+            {{ progress.have.toLocaleString() }}/{{ progress.need.toLocaleString() }} {{ progress.label }}
+          </div>
+          <div class="mt-1.5 h-2 overflow-hidden rounded-[3px] border-2 border-ink bg-cream compact:hidden">
+            <span class="block h-full bg-teal transition-[width] duration-300" :style="{ width: `${(progress.have / progress.need) * 100}%` }" />
+          </div>
+        </template>
+      </button>
+    </div>
 
     <button
       class="px-panel pointer-events-auto absolute bottom-3 left-3 w-[200px] cursor-pointer p-1 compact:top-[108px] compact:right-3 compact:bottom-auto compact:left-auto compact:w-[124px]"

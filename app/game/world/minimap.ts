@@ -39,8 +39,9 @@ const SOLID: Partial<Record<number, Rgb>> = {
 }
 const ROOF: Record<HouseKind, Rgb> = { broc: [216, 84, 72], avo: [234, 150, 70], mama: [236, 116, 156] }
 const FOUNTAIN: Rgb = [120, 196, 240]
-// Moves a zone's label off things it would cover, in tiles. The village one sits on the quest givers.
-const LABEL_NUDGE: Partial<Record<ZoneId, { x: number; y: number }>> = { village: { x: 0, y: -5 } }
+// Where to print a zone's name when the middle of the zone is busy, in tiles. The village's
+// middle is full of quest givers, so its name goes on the open grass south of the plaza.
+const LABEL_AT: Partial<Record<ZoneId, { x: number; y: number }>> = { village: { x: 48, y: 53 } }
 
 export interface MinimapData {
   // A PNG data URL, MAP_W × MAP_H pixels.
@@ -49,7 +50,7 @@ export interface MinimapData {
   labels: { id: ZoneId; name: string; x: number; y: number }[]
 }
 
-export function paintMinimap(world: World): MinimapData {
+export const paintMinimap = (world: World): MinimapData => {
   const canvas = document.createElement('canvas')
   canvas.width = MAP_W
   canvas.height = MAP_H
@@ -81,9 +82,6 @@ export function paintMinimap(world: World): MinimapData {
       s.n++
       sums.set(z, s)
     }
-  const labels = [...sums].map(([id, s]) => {
-    const nudge = LABEL_NUDGE[id] ?? { x: 0, y: 0 }
-    return { id, name: ZONES[id].name, x: s.x / s.n + nudge.x, y: s.y / s.n + nudge.y }
-  })
+  const labels = [...sums].map(([id, s]) => ({ id, name: ZONES[id].name, ...(LABEL_AT[id] ?? { x: s.x / s.n, y: s.y / s.n }) }))
   return { src: canvas.toDataURL(), labels }
 }

@@ -25,7 +25,7 @@ const playTime = computed(() => {
   return h ? `${h}h ${m}m` : `${m}m`
 })
 
-function startNew() {
+const startNew = () => {
   if (existing.value && !confirmNew.value) {
     confirmNew.value = true
     return
@@ -34,7 +34,7 @@ function startNew() {
   navigateTo('/play')
 }
 
-async function loadCode() {
+const loadCode = async () => {
   loadError.value = ''
   loading.value = true
   try {
@@ -59,7 +59,7 @@ const sparkles = Array.from({ length: 5 }, (_, k) => {
   return { left: `${i * 19 - 10}%`, top: `${20 + Math.sin(i) * 30}%`, animationDelay: `${i * 0.37}s` }
 })
 
-function formatCode(e: Event) {
+const formatCode = (e: Event) => {
   const v = (e.target as HTMLInputElement).value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)
   code.value = v.length > 4 ? `${v.slice(0, 4)}-${v.slice(4)}` : v
 }

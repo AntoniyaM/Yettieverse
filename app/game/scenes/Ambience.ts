@@ -13,7 +13,7 @@ import { EMPTY, MAP_H, MAP_W, TILE, isWater, type World, type ZoneId } from '../
 const DAY_SECONDS = 360
 
 // Emissive things (glows, sparks, UI-ish bits) opt out of lighting so they stay bright at night.
-export function unlit<O extends Phaser.GameObjects.GameObject>(o: O) {
+export const unlit = <O extends Phaser.GameObjects.GameObject>(o: O) => {
   o.setData('unlit', true)
   return o
 }
@@ -37,7 +37,7 @@ interface Glow {
   when?: () => boolean
 }
 
-function sky(t: number) {
+const sky = (t: number) => {
   for (let i = 0; i < SKY.length - 1; i++) {
     const [t0, c0, n0] = SKY[i]!, [t1, c1, n1] = SKY[i + 1]!
     if (t >= t0 && t <= t1) {
@@ -87,10 +87,10 @@ export class Ambience {
     for (let y = 0; y < MAP_H; y += 3)
       for (let x = 0; x < MAP_W; x += 3) {
         const z = world.zone[y]![x]
-        if ((z === 'meadow' || z === 'village') && world.solid[y]![x] === EMPTY && !isWater(world.ground[y]![x]!)) spots.push([x, y])
+        if ((z === 'meadow' || z === 'village' || z === 'orchard') && world.solid[y]![x] === EMPTY && !isWater(world.ground[y]![x]!)) spots.push([x, y])
       }
     const tints = [0xffffff, 0xfff3a0, 0xa8dcff, 0xffc2dd, 0xb9a0e8]
-    for (let i = 0; i < 14 && spots.length; i++) {
+    for (let i = 0; i < 20 && spots.length; i++) {
       const [x, y] = spots[Math.floor(Math.random() * spots.length)]!
       const s = scene.add.sprite(x * TILE, y * TILE, 'butterfly').play('flutter').setDepth(7000).setTint(tints[i % tints.length]!)
       this.butterflies.push({ s, hx: x * TILE, hy: y * TILE, a: 0.3 + Math.random() * 0.5, b: 0.4 + Math.random() * 0.5, p: Math.random() * 10 })

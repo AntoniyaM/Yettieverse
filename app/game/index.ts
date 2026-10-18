@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { BootScene } from './scenes/BootScene'
 import { WorldScene } from './scenes/WorldScene'
 
-export function createGame(parent: HTMLElement) {
+export const createGame = (parent: HTMLElement) => {
   return new Phaser.Game({
     type: Phaser.WEBGL,
     parent,

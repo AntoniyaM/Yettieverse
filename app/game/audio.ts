@@ -7,7 +7,7 @@ let musicTimer: ReturnType<typeof setInterval> | null = null
 
 const midi = (n: number) => 440 * 2 ** ((n - 69) / 12)
 
-function ac() {
+const ac = () => {
   if (!ctx) {
     ctx = new AudioContext()
     master = ctx.createGain()
@@ -21,12 +21,12 @@ function ac() {
   return ctx
 }
 
-function tone(
+const tone = (
   freq: number,
   at: number,
   dur: number,
   { type = 'square', gain = 0.08, slide = 0, bus }: { type?: OscillatorType; gain?: number; slide?: number; bus?: AudioNode } = {},
-) {
+) => {
   const a = ac()
   const o = a.createOscillator()
   const g = a.createGain()
@@ -41,7 +41,7 @@ function tone(
   o.stop(at + dur + 0.02)
 }
 
-function noise(at: number, dur: number, gain = 0.1, freq = 1200) {
+const noise = (at: number, dur: number, gain = 0.1, freq = 1200) => {
   const a = ac()
   const buf = a.createBuffer(1, Math.ceil(a.sampleRate * dur), a.sampleRate)
   const d = buf.getChannelData(0)
@@ -120,7 +120,7 @@ const LEAD: (number | null)[] = [
 const ROOTS = [48, 45, 41, 43, 41, 48, 50, 43]
 const STEP = 0.3 // Seconds per 8th note (~100 bpm).
 
-export function startMusic() {
+export const startMusic = () => {
   if (musicTimer) return
   const a = ac()
   let step = 0
@@ -141,17 +141,17 @@ export function startMusic() {
   }, 60)
 }
 
-export function stopMusic() {
+export const stopMusic = () => {
   if (musicTimer) clearInterval(musicTimer)
   musicTimer = null
 }
 
-export function setMuted(m: boolean) {
+export const setMuted = (m: boolean) => {
   muted = m
   if (master && ctx) master.gain.setTargetAtTime(m ? 0 : 0.6, ctx.currentTime, 0.05)
 }
 
 // Must be called from a user gesture at least once.
-export function unlockAudio() {
+export const unlockAudio = () => {
   ac()
 }

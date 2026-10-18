@@ -49,7 +49,7 @@ watch(
     {immediate: true},
 )
 
-function advance() {
+const advance = () => {
   const d = ui.dialog
   if (!d || !line.value) return
   if (typing.value) {
@@ -61,7 +61,7 @@ function advance() {
   else closeDialog(-1)
 }
 
-function onKey(e: KeyboardEvent) {
+const onKey = (e: KeyboardEvent) => {
   if (!ui.dialog) return
   const k = e.key.toLowerCase()
   if ([' ', 'enter', 'e'].includes(k)) {

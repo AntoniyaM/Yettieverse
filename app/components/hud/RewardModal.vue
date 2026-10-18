@@ -10,11 +10,11 @@ const confetti = Array.from({ length: 36 }, (_, i) => ({
   spin: `${((i * 97) % 720) - 360}deg`,
 }))
 
-function close() {
+const close = () => {
   ui.reward = null
   ui.inputLockedUntil = performance.now() + 250
 }
-function onKey(e: KeyboardEvent) {
+const onKey = (e: KeyboardEvent) => {
   // The keypress that closed the dialog would otherwise close this too.
   if (!ui.reward || ui.dialog || e.repeat || performance.now() < ui.inputLockedUntil) return
   if ([' ', 'Enter', 'Escape', 'e'].includes(e.key)) {

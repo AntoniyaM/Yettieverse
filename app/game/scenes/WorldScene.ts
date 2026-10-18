@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { sfx } from '../audio'
-import { ITEMS, NPCS, type ItemId, type NpcId } from '../data'
+import { ITEMS, NAP, NPCS, type ItemId, type NpcId } from '../data'
 import { Player, YettieView, type FrameMeta } from '../entities/Yettie'
 import {
   addItem,
@@ -9,11 +9,12 @@ import {
   persist,
   save,
   say,
+  toast,
   ui,
 } from '../state'
-import { indicatorFor, knockDoor, readSign, ringBell, talkTo, useFountain } from '../story'
+import { enjoyView, indicatorFor, knockDoor, readSign, ringBell, talkTo, useFountain } from '../story'
 import { paintMinimap } from '../world/minimap'
-import { MAP_H, MAP_W, T, TILE, WATER_TILES, ZONES, buildWorld, isWater, type Point, type World } from '../world/world'
+import { EMPTY, MAP_H, MAP_W, T, TILE, WATER_TILES, ZONES, buildWorld, isWater, type Point, type World } from '../world/world'
 import { Ambience, unlit } from './Ambience'
 
 interface Interactable {
@@ -37,6 +38,10 @@ interface Pickup {
   item: ItemId
   sprite: Phaser.GameObjects.Image
   shadow: Phaser.GameObjects.Image
+  // Where Yettie picks it up (hidden ones are drawn lower than they sit).
+  at: { x: number; y: number }
+  // Tucked behind a tree: it twinkles now and then so it can be found.
+  hidden: boolean
 }
 
 const center = (p: Point) => ({ x: p.x * TILE + TILE / 2, y: p.y * TILE + TILE / 2 })
@@ -69,6 +74,8 @@ export class WorldScene extends Phaser.Scene {
   private notes!: Phaser.GameObjects.Particles.ParticleEmitter
   private dust!: Phaser.GameObjects.Particles.ParticleEmitter
   private busy = false
+  private twinkleClock = 0
+  private budHintAt = 0
 
   constructor() {
     super('world')
@@ -108,7 +115,9 @@ export class WorldScene extends Phaser.Scene {
     this.buildProps()
     this.buildNpcs()
 
-    const start = save.player ?? { ...center(this.world.spawns.player), facing: 'down' as const }
+    // A save from before the island changed shape could put Yettie inside a tree or out at sea.
+    const saved = save.player && this.canStand(save.player.x, save.player.y) ? save.player : null
+    const start = saved ?? { ...center(this.world.spawns.player), facing: 'down' as const }
     this.player = new Player(this, start.x, start.y - 3, meta, (x, y) => this.isWaterAt(x, y), {
       dust: (x, y, n) => this.dust.explode(n, x, y),
       splash: (x, y) => {
@@ -154,6 +163,7 @@ export class WorldScene extends Phaser.Scene {
         this.refreshIndicators()
       }),
       bus.on('pip-home', () => this.pipGoHome()),
+      bus.on('nap', (clock) => this.nap(clock as number)),
       bus.on('bell', (i) => this.bellRung(i as number)),
       bus.on('wish', () => {
         const f = this.fountain
@@ -266,6 +276,13 @@ export class WorldScene extends Phaser.Scene {
       this.interactables.push({ x, y: y + 8, lift: 20, label: () => 'Read the sign', act: () => readSign(sign.text) })
     }
 
+    s.views.forEach((v, i) => {
+      const { x, y } = center(v)
+      this.add.image(x, y + 8, 'sign').setOrigin(0.5, 1).setDepth(y + 6)
+      this.block(x, y + 4, 10, 6)
+      this.interactables.push({ x, y: y + 8, lift: 20, label: () => 'Enjoy the view', act: () => enjoyView(i) })
+    })
+
     for (const l of s.lamps) {
       const { x, y } = center(l)
       this.lamps.push(this.add.sprite(x, y + 8, 'lamp', 0).setOrigin(0.5, 1).setDepth(y + 6))
@@ -371,7 +388,7 @@ export class WorldScene extends Phaser.Scene {
 
   private syncPickups() {
     const want = new Map<string, { item: ItemId; p: Point }>()
-    const add = (quest: 'soup' | 'berries' | 'hydrate', item: ItemId, pts: Point[]) => {
+    const add = (quest: 'soup' | 'berries' | 'hydrate' | 'dreams', item: ItemId, pts: Point[]) => {
       if (save.quests[quest] !== 'active') return
       pts.forEach((p, i) => {
         const id = `${item}-${i}`
@@ -382,6 +399,7 @@ export class WorldScene extends Phaser.Scene {
     add('soup', 'carrot', s.carrots)
     add('berries', 'berry', s.berries)
     add('hydrate', 'dewdrop', s.dewdrops)
+    add('dreams', 'moonpetal', s.moonpetals)
 
     for (const [id, pk] of this.pickups) {
       if (!want.has(id)) {
@@ -393,12 +411,16 @@ export class WorldScene extends Phaser.Scene {
     for (const [id, { item, p }] of want) {
       if (this.pickups.has(id)) continue
       const { x, y } = center(p)
-      const shadow = this.add.image(x, y + 6, 'shadow').setScale(0.6).setDepth(-100)
-      const sprite = this.add.image(x, y + 3, ITEMS[item].icon).setOrigin(0.5, 1).setDepth(y + 3)
+      // A hidden pickup sits just in front of a tree. It's drawn behind the tree's canopy
+      // (between the deco and solid layers), with only its top peeking out.
+      const hidden = this.world.above[p.y]![p.x] !== EMPTY
+      const sy = hidden ? y + 10 : y + 3
+      const shadow = this.add.image(x, y + 6, 'shadow').setScale(0.6).setDepth(-100).setVisible(!hidden)
+      const sprite = this.add.image(x, sy, ITEMS[item].icon).setOrigin(0.5, 1).setDepth(hidden ? -998.5 : y + 3)
       sprite.setScale(0).setLighting(true)
       shadow.setLighting(true)
       this.tweens.add({ targets: sprite, scale: 1, duration: 300, ease: 'Back.out', delay: Math.random() * 300 })
-      this.tweens.add({ targets: sprite, y: y, duration: 700 + Math.random() * 300, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+      this.tweens.add({ targets: sprite, y: sy - 3, duration: 700 + Math.random() * 300, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
       if (item === 'dewdrop') {
         const glow = this.add.image(x, y, 'glow').setScale(3).setAlpha(0.5).setBlendMode(Phaser.BlendModes.ADD).setDepth(9100).setTint(0x88ccff)
         this.tweens.add({ targets: glow, alpha: 0.15, duration: 800, yoyo: true, repeat: -1 })
@@ -408,7 +430,11 @@ export class WorldScene extends Phaser.Scene {
           this.ambience.removeGlow(light)
         })
       }
-      this.pickups.set(id, { id, item, sprite, shadow })
+      if (item === 'moonpetal') {
+        const light = this.ambience.addGlow(x, y - 4, 30, 0xc8b4ff, 0.9, { flicker: 0.1 })
+        sprite.once('destroy', () => this.ambience.removeGlow(light))
+      }
+      this.pickups.set(id, { id, item, sprite, shadow, at: { x, y: y + 3 }, hidden })
     }
   }
 
@@ -427,10 +453,36 @@ export class WorldScene extends Phaser.Scene {
     })
   }
 
+  // Whether a saved position is solid ground Yettie can stand on. Mid-swim saves start back on land.
+  private canStand(x: number, y: number) {
+    const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE)
+    if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return false
+    return this.world.solid[ty]![tx] === EMPTY && !isWater(this.world.ground[ty]![tx]!)
+  }
+
+  // Fade to dark, move the clock, fade back in.
+  private nap(clock: number) {
+    ui.napping = true
+    const cam = this.cameras.main
+    cam.fadeOut(900, 20, 16, 40)
+    cam.once('camerafadeoutcomplete', () => {
+      save.clock = clock
+      this.time.delayedCall(500, () => {
+        cam.fadeIn(900, 20, 16, 40)
+        cam.once('camerafadeincomplete', () => {
+          ui.napping = false
+          toast(NAP.woke[Math.floor(Math.random() * NAP.woke.length)]!, 'heart')
+          persist()
+        })
+      })
+    })
+  }
+
   private collect(pk: Pickup) {
     this.pickups.delete(pk.id)
     const { sprite, shadow } = pk
     this.tweens.killTweensOf(sprite)
+    sprite.setDepth(9000)
     this.tweens.add({
       targets: sprite, y: sprite.y - 14, scale: 1.6, alpha: 0, duration: 380, ease: 'Quad.out',
       onComplete: () => sprite.destroy(),
@@ -551,8 +603,21 @@ export class WorldScene extends Phaser.Scene {
       this.arrow.setPosition(this.target.x, this.target.y - this.target.lift + bob)
     }
 
+    // Moonpetals are closed buds by day and can only be picked once they open at night.
+    const bloom = this.ambience.night > 0.5
+    this.twinkleClock += dt
+    const twinkle = this.twinkleClock > 2200
+    if (twinkle) this.twinkleClock = 0
     for (const pk of this.pickups.values()) {
-      if (Math.hypot(pk.sprite.x - this.player.x, pk.sprite.y - this.player.y) < 12) this.collect(pk)
+      const shut = pk.item === 'moonpetal' && !bloom
+      if (pk.item === 'moonpetal') pk.sprite.setFrame(shut ? 0 : 1)
+      if (twinkle && pk.hidden) this.sparks.explode(2, pk.sprite.x, pk.sprite.y - 10)
+      if (Math.hypot(pk.at.x - this.player.x, pk.at.y - this.player.y) >= 12) continue
+      if (!shut) this.collect(pk)
+      else if (time > this.budHintAt) {
+        this.budHintAt = time + 6000
+        this.floatText(pk.sprite.x, pk.sprite.y - 12, 'Still asleep. Come back at night!', '#d8ccff')
+      }
     }
     this.ambience.update(time, dt, this.player)
     // Quarter-tile steps: smooth enough for the map, and Vue only re-renders when it changes.

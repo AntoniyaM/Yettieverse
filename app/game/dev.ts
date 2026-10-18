@@ -2,7 +2,7 @@
 import { save, toast } from './state'
 
 // Jump the day clock to midday or midnight (see the SKY table in scenes/Ambience.ts).
-export function toggleDayNight() {
+export const toggleDayNight = () => {
   const night = save.clock > 0.62 || save.clock < 0.04
   save.clock = night ? 0.3 : 0.8
   toast(night ? 'Dev: ☀️ jumped to day' : 'Dev: 🌙 jumped to night')

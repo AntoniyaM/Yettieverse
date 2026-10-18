@@ -15,7 +15,7 @@ const stats = computed(() => [
   { label: 'Sparkles', value: save.sparkles },
 ])
 
-function close() {
+const close = () => {
   ui.ending = false
   ui.inputLockedUntil = performance.now() + 250
 }

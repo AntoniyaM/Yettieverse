@@ -4,6 +4,7 @@
 // Usage: `node scripts/check-world.ts [minimap.png]`.
 import fs from 'node:fs'
 import {PNG} from 'pngjs'
+import {QUESTS} from '../app/game/data.ts'
 import {buildWorld, EMPTY, MAP_H, MAP_W, T, isWater, type Point} from '../app/game/world/world.ts'
 
 const world = buildWorld()
@@ -12,11 +13,11 @@ const {ground, solid, spawns} = world
 const blocked = Array.from({length: MAP_H}, () => Array<boolean>(MAP_W).fill(false))
 for (const h of spawns.houses) for (let y = h.y; y < h.y + 3; y++) for (let x = h.x; x < h.x + 3; x++) blocked[y]![x] = true
 for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) blocked[spawns.fountain.y + y]![spawns.fountain.x + x] = true
-for (const p of [...Object.values(spawns.npcs), ...spawns.signs, ...spawns.lamps]) blocked[p.y]![p.x] = true
+for (const p of [...Object.values(spawns.npcs), ...spawns.signs, ...spawns.lamps, ...spawns.views]) blocked[p.y]![p.x] = true
 
 type Abilities = { floatie: boolean; boots: boolean }
 
-function reachable(ab: Abilities) {
+const reachable = (ab: Abilities) => {
   const seen = Array.from({length: MAP_H}, () => Array<boolean>(MAP_W).fill(false))
   const q: Point[] = [spawns.player]
   seen[spawns.player.y]![spawns.player.x] = true
@@ -44,6 +45,15 @@ function reachable(ab: Abilities) {
 const hits = (seen: boolean[][], p: Point) =>
     [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => seen[p.y + dy!]?.[p.x + dx!])
 
+// Every quest spawns exactly as many things as it asks for: no spares, no shortfall.
+const need: [string, number, number][] = QUESTS.flatMap((q) => {
+  const o = q.objective
+  const where = {carrot: spawns.carrots, berry: spawns.berries, dewdrop: spawns.dewdrops, moonpetal: spawns.moonpetals}
+  if (o.type === 'collect') return [[o.item, where[o.item].length, o.count]]
+  if (q.id === 'tour') return [['views', spawns.views.length, o.type === 'flags' ? o.flags.length : 0]]
+  return []
+})
+
 const none = reachable({floatie: false, boots: false})
 const float = reachable({floatie: true, boots: false})
 const all = reachable({floatie: true, boots: true})
@@ -59,8 +69,9 @@ const checks: [string, boolean][] = [
   ['pip with floatie', hits(float, spawns.npcs.pip!)],
   ...spawns.bells.map((p, i) => [`bell ${i} NOT without boots`, !hits(float, p)] as [string, boolean]),
   ...spawns.bells.map((p, i) => [`bell ${i} with boots`, hits(all, p)] as [string, boolean]),
-  ['berries >= 8', spawns.berries.length >= 8],
-  ['carrots >= 5', spawns.carrots.length >= 5],
+  ...spawns.moonpetals.map((p, i) => [`moonpetal ${i} (start)`, hits(none, p)] as [string, boolean]),
+  ...spawns.views.map((p, i) => [`view ${i} (start)`, hits(none, p)] as [string, boolean]),
+  ...need.map(([item, have, count]) => [`${item}: ${have} spawns, ${count} needed`, have === count] as [string, boolean]),
 ]
 let failed = 0
 for (const [name, pass] of checks) if (!pass) {
@@ -94,7 +105,7 @@ const scol: Record<number, [number, number, number]> = {
 const png = new PNG({width: MAP_W * S, height: MAP_H * S})
 const mark = (p: Point, c: [number, number, number]) => paint(p.x, p.y, c, true)
 
-function paint(tx: number, ty: number, c: [number, number, number], dot = false) {
+const paint = (tx: number, ty: number, c: [number, number, number], dot = false) => {
   for (let y = 0; y < S; y++)
     for (let x = 0; x < S; x++) {
       if (dot && (x < 1 || y < 1 || x > S - 2 || y > S - 2)) continue
@@ -114,6 +125,8 @@ for (const p of spawns.carrots) mark(p, [255, 140, 0])
 for (const p of spawns.berries) mark(p, [255, 40, 80])
 for (const p of spawns.dewdrops) mark(p, [0, 255, 255])
 for (const p of spawns.bells) mark(p, [255, 215, 0])
+for (const p of spawns.moonpetals) mark(p, [190, 160, 255])
+for (const p of spawns.views) mark(p, [0, 0, 255])
 for (const p of spawns.signs) mark(p, [255, 255, 255])
 mark(spawns.player, [0, 0, 0])
 const out = process.argv[2] ?? 'minimap.png'

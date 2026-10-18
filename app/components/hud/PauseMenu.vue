@@ -4,7 +4,7 @@ import { persist, pushCloud, save, ui } from '~/game/state'
 const toggleMute = inject<() => void>('toggleMute')!
 const copied = ref(false)
 
-async function copy() {
+const copy = async () => {
   try {
     await navigator.clipboard.writeText(save.code)
     copied.value = true
@@ -14,7 +14,7 @@ async function copy() {
   }
 }
 
-function quit() {
+const quit = () => {
   persist()
   ui.panel = null
   navigateTo('/')

@@ -5,8 +5,8 @@
 // directly to verify every quest target is reachable.
 
 export const TILE = 16
-export const MAP_W = 96
-export const MAP_H = 80
+export const MAP_W = 128
+export const MAP_H = 104
 
 // Tile indices in public/tiles/tileset.png: index n is the n-th 16px tile from the left.
 export const T = {
@@ -56,7 +56,7 @@ export const EMPTY = -1
 
 export const WATER_TILES: number[] = [T.WATER, T.WATER_B, T.FOAM, T.FOAM_B]
 
-export type ZoneId = 'village' | 'meadow' | 'woods' | 'lake' | 'peak' | 'shore'
+export type ZoneId = 'village' | 'meadow' | 'woods' | 'lake' | 'peak' | 'shore' | 'glade' | 'orchard'
 export const ZONES: Record<ZoneId, { name: string; tagline: string }> = {
   village: { name: 'Sprout Village', tagline: 'Home sweet home' },
   meadow: { name: 'Carrot Meadow', tagline: 'Crunchy since forever' },
@@ -64,6 +64,8 @@ export const ZONES: Record<ZoneId, { name: string; tagline: string }> = {
   lake: { name: 'Glimmer Lake', tagline: 'Sparkly. Wet. Very wet.' },
   peak: { name: 'Frosty Peak', tagline: 'Brrr-illiant views' },
   shore: { name: 'Sunny Shore', tagline: 'Sand in fur guaranteed' },
+  glade: { name: 'Starlight Glade', tagline: 'The flowers here are night owls' },
+  orchard: { name: 'Blossom Orchard', tagline: 'An apple a day, delivered by trees' },
 }
 
 export interface Point {
@@ -88,11 +90,14 @@ export interface World {
     dewdrops: Point[]
     bells: Point[]
     lamps: Point[]
+    moonpetals: Point[]
+    // Lookouts for Sir Shelly's Grand Tour.
+    views: Point[]
   }
 }
 
 // Helpers.
-function mulberry32(seed: number) {
+const mulberry32 = (seed: number) => {
   return () => {
     seed |= 0
     seed = (seed + 0x6d2b79f5) | 0
@@ -102,7 +107,7 @@ function mulberry32(seed: number) {
   }
 }
 
-function valueNoise(rng: () => number, cell: number) {
+const valueNoise = (rng: () => number, cell: number) => {
   const gw = Math.ceil(MAP_W / cell) + 2
   const gh = Math.ceil(MAP_H / cell) + 2
   const g = Array.from({ length: gw * gh }, rng)
@@ -130,13 +135,15 @@ const ellipse = (x: number, y: number, cx: number, cy: number, rx: number, ry: n
 const PEAK = { cx: 72, cy: 14, rx: 20, ry: 15 }
 const LAKE = { cx: 72, cy: 46, rx: 10, ry: 7 }
 const ISLE = { cx: 73, cy: 46, r: 2.4 }
+const GLADE = { cx: 106, cy: 53, rx: 17, ry: 16 }
+const CLEARING = { x: 106, y: 54 }
 
-export function isWater(tile: number) {
+export const isWater = (tile: number) => {
   return WATER_TILES.includes(tile)
 }
 
 // Builder.
-export function buildWorld(seed = 20261001): World {
+export const buildWorld = (seed = 20261001): World => {
   const rng = mulberry32(seed)
   const noise = valueNoise(rng, 7)
   const fine = valueNoise(rng, 3)
@@ -160,6 +167,15 @@ export function buildWorld(seed = 20261001): World {
     { cx: 72, cy: 16, rx: 19, ry: 14 },
     { cx: 48, cy: 68, rx: 22, ry: 9 },
     { cx: 16, cy: 50, rx: 12, ry: 14 },
+    // South-west cove.
+    { cx: 27, cy: 73, rx: 14, ry: 8 },
+    // Starlight Glade, and the neck of land that joins it east of the lake.
+    GLADE,
+    { cx: 90, cy: 49, rx: 8, ry: 7 },
+    // Blossom Orchard, joined to the shore and to the glade.
+    { cx: 84, cy: 86, rx: 22, ry: 11 },
+    { cx: 68, cy: 76, rx: 10, ry: 6 },
+    { cx: 100, cy: 72, rx: 6, ry: 7 },
   ]
   for (let y = 0; y < MAP_H; y++) {
     for (let x = 0; x < MAP_W; x++) {
@@ -186,9 +202,11 @@ export function buildWorld(seed = 20261001): World {
       let z: ZoneId = 'village'
       if (ellipse(x, y, PEAK.cx, PEAK.cy, PEAK.rx, PEAK.ry) < 1) z = 'peak'
       else if (ellipse(x, y, LAKE.cx, LAKE.cy, LAKE.rx + 4, LAKE.ry + 4) < 1) z = 'lake'
+      else if (x >= 93 && y < 76) z = 'glade'
+      else if (x >= 60 && y >= 76) z = 'orchard'
       else if (x < 38 && y < 34) z = 'woods'
-      else if (x < 31) z = 'meadow'
       else if (y > 62) z = 'shore'
+      else if (x < 31) z = 'meadow'
       zone[y]![x] = z
     }
   }
@@ -213,6 +231,8 @@ export function buildWorld(seed = 20261001): World {
       if (z === 'peak') t = n > 0.6 ? T.SNOW2 : T.SNOW
       else if (z === 'shore' || nearOcean(x, y, 2) || nearLake(x, y)) t = T.SAND
       else if (z === 'woods') t = n > 0.55 ? T.WOODS2 : T.WOODS
+      else if (z === 'glade') t = chance(0.12) ? T.TALLGRASS : chance(0.05) ? T.FLOWERS : n > 0.45 ? T.WOODS2 : T.GRASS2
+      else if (z === 'orchard') t = chance(0.1) ? T.FLOWERS : n > 0.5 ? T.GRASS2 : T.GRASS
       else if (z === 'meadow') t = chance(0.22) ? T.FLOWERS : chance(0.1) ? T.TALLGRASS : n > 0.5 ? T.GRASS2 : T.GRASS
       else t = chance(0.04) ? T.FLOWERS : n > 0.55 ? T.GRASS2 : T.GRASS
       ground[y]![x] = t
@@ -262,13 +282,32 @@ export function buildWorld(seed = 20261001): World {
   // Peak trails.
   road([[64, 21], [72, 17], [80, 14]], 1)
   road([[72, 17], [72, 7]], 1)
+  // East along the north of the lake to Starlight Glade, then on to the east coast.
+  road([[56, 34], [64, 36], [72, 35], [82, 37], [89, 44], [96, 50], [104, 53]])
+  road([[106, 54], [114, 50], [119, 51]], 1)
+  // South from the shore to Blossom Orchard, and back up to the glade.
+  road([[47, 63], [56, 70], [66, 76], [76, 82], [86, 85]])
+  road([[86, 85], [97, 85]], 1)
+  road([[86, 85], [86, 94]], 1)
+  road([[106, 56], [102, 64], [99, 73], [95, 80], [89, 84]], 1)
+  // The cove, west along the beach.
+  road([[47, 63], [36, 70], [24, 76]], 1)
   // Clearings at trail ends.
-  for (const [cx, cy] of [[14, 13], [34, 10], [10, 31], [27, 24]] as const)
+  for (const [cx, cy] of [[14, 13], [34, 10], [10, 31], [27, 24], [119, 51], [86, 94], [24, 76]] as const)
     stamp(cx, cy, 2, (x, y) => {
       if (land[y]![x]) path[y]![x] = true
     })
 
   // 5. Houses, NPCs and signs reserve their space.
+  // The nearest land tile that isn't on a road (signs sit beside paths, not on them).
+  const offPath = (p: Point): Point => {
+    for (let r = 0; r < 5; r++)
+      for (let dy = -r; dy <= r; dy++)
+        for (let dx = -r; dx <= r; dx++) if (land[p.y + dy]?.[p.x + dx] && !path[p.y + dy]![p.x + dx]) return { x: p.x + dx, y: p.y + dy }
+    return p
+  }
+  // Lookouts at the ends of trails, one per corner of the island.
+  const views: Point[] = [{ x: 14, y: 11 }, { x: 6, y: 47 }, { x: 22, y: 78 }, { x: 121, y: 51 }, { x: 86, y: 96 }].map(offPath)
   const houses: World['spawns']['houses'] = [
     { x: 39, y: 37, kind: 'broc' },
     { x: 55, y: 37, kind: 'avo' },
@@ -290,7 +329,9 @@ export function buildWorld(seed = 20261001): World {
     { x: 60, y: 44, text: 'Glimmer Lake →\nNo swimming without a floatie!\n— Drip, Lifeguard' },
     { x: 46, y: 60, text: 'Sunny Shore ↓\nSand in fur: guaranteed.' },
     { x: 46, y: 50, text: 'Welcome to Sprout Village!\nPopulation: cozy.' },
-  ]
+    { x: 87, y: 41, text: 'Starlight Glade →\nThe flowers here only open after dark.' },
+    { x: 64, y: 76, text: 'Blossom Orchard ↘\nPlease do not hug the trees. (Okay, a little.)' },
+  ].map((sg) => ({ ...offPath(sg), text: sg.text }))
   const player = { x: 48, y: 47 }
   // Street lamps: the plaza corners, then a few along the roads (just off the path).
   const lamps: Point[] = [[43, 41], [53, 41], [43, 49], [53, 49], [36, 49], [58, 45], [49, 56], [42, 36]].map(([x, y]) => {
@@ -302,7 +343,12 @@ export function buildWorld(seed = 20261001): World {
   // Lamps are cleared *after* scattering (step 8): reserving them up front would shift the
   // RNG stream and move every tree and pickup on the island.
   for (const h of houses) for (let y = h.y - 1; y <= h.y + 3; y++) for (let x = h.x - 1; x <= h.x + 3; x++) keepClear[y]![x] = true
-  for (const p of [...Object.values(npcs), ...signs, player]) stamp(p.x, p.y, 1, (x, y) => (keepClear[y]![x] = true))
+  for (const p of [...Object.values(npcs), ...signs, ...views, player]) stamp(p.x, p.y, 1, (x, y) => (keepClear[y]![x] = true))
+  // The glade's clearing stays open and flowery (the roads end at its edge), so the moonpetals have room to bloom.
+  stamp(CLEARING.x, CLEARING.y, 4, (x, y) => {
+    keepClear[y]![x] = true
+    if (land[y]![x]) ground[y]![x] = variant(x, y) < 30 ? T.FLOWERS : variant(x, y) < 45 ? T.TALLGRASS : T.GRASS2
+  })
   for (let y = fountain.y - 1; y <= fountain.y + 2; y++) for (let x = fountain.x - 1; x <= fountain.x + 2; x++) keepClear[y]![x] = true
 
   // 6. Peak cliff ring and drift gate.
@@ -324,6 +370,9 @@ export function buildWorld(seed = 20261001): World {
     { x: 13, y: 43, w: 5, h: 3 },
     { x: 19, y: 54, w: 5, h: 3 },
     { x: 8, y: 50, w: 4, h: 3 },
+    // Orchard veggie beds.
+    { x: 72, y: 87, w: 5, h: 3 },
+    { x: 92, y: 88, w: 4, h: 3 },
   ]
   const soil: Point[] = []
   for (const p of patches) {
@@ -343,8 +392,9 @@ export function buildWorld(seed = 20261001): World {
   // 8. Scatter obstacles and decoration by zone.
   const bush = (x: number, y: number) => (zone[y]![x] !== 'woods' && variant(x, y) < 35 ? T.FLOWER_BUSH : T.BUSH)
   const putTree = (x: number, y: number, bottom: number, top: number) => {
-    // A sprinkle of apple trees outside the deep woods.
-    if (bottom === T.TREE && variant(x, y) < (zone[y]![x] === 'woods' ? 8 : 30)) [bottom, top] = [T.APPLE_TREE, T.APPLE_TREE_TOP]
+    // A sprinkle of apple trees outside the deep woods, and nothing but apple trees in the orchard.
+    const apples = zone[y]![x] === 'orchard' ? 100 : zone[y]![x] === 'woods' ? 8 : 30
+    if (bottom === T.TREE && variant(x, y) < apples) [bottom, top] = [T.APPLE_TREE, T.APPLE_TREE_TOP]
     solid[y]![x] = bottom
     if (y > 0 && above[y - 1]![x] === EMPTY) above[y - 1]![x] = top
   }
@@ -365,6 +415,17 @@ export function buildWorld(seed = 20261001): World {
         if (chance(0.035)) putTree(x, y, T.PALM, T.PALM_TOP)
         else if (chance(0.04)) deco[y]![x] = T.SHELL
         else if (chance(0.015)) solid[y]![x] = T.ROCK
+      } else if (z === 'glade') {
+        // A ring of old trees around the clearing, mushrooms underneath.
+        const d = Math.hypot(x - CLEARING.x, y - CLEARING.y)
+        if (chance(d > 8 ? 0.3 + n * 0.25 : 0.04)) putTree(x, y, T.TREE, T.TREE_TOP)
+        else if (chance(0.07)) deco[y]![x] = T.MUSHROOM
+        else if (chance(0.03)) solid[y]![x] = bush(x, y)
+      } else if (z === 'orchard') {
+        // Neat rows of apple trees, with the odd gap.
+        if (x % 3 === 0 && y % 3 === 1 && chance(0.85)) putTree(x, y, T.TREE, T.TREE_TOP)
+        else if (chance(0.025)) solid[y]![x] = bush(x, y)
+        else if (chance(0.015)) deco[y]![x] = T.PEBBLES
       } else if (z === 'meadow') {
         if (chance(0.025)) solid[y]![x] = T.ROCK
         else if (chance(0.03)) solid[y]![x] = bush(x, y)
@@ -413,12 +474,30 @@ export function buildWorld(seed = 20261001): World {
     }
     return out
   }
-  const carrots = spread(soil, 6, 2)
+  // Exactly as many pickups as the quests ask for, so every one counts.
+  const carrots = [...spread(soil.filter((p) => zone[p.y]![p.x] !== 'orchard'), 5, 2), ...spread(soil.filter((p) => zone[p.y]![p.x] === 'orchard'), 3, 2)]
   const woodsTrail: Point[] = []
   for (let y = 0; y < MAP_H; y++)
     for (let x = 0; x < MAP_W; x++) if (zone[y]![x] === 'woods' && path[y]![x] && walkable(x, y) && y < 28) woodsTrail.push({ x, y })
-  const berries = spread(woodsTrail, 10, 4)
-  const dewdrops = [{ x: 34, y: 10 }, { x: 8, y: 56 }, { x: 62, y: 70 }, { x: 58, y: 35 }].map(nudge)
+  // Hidden spots: tucked under a tree's leaves, a step off a path.
+  const nearPath = (x: number, y: number) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => path[y + dy!]?.[x + dx!])
+  const hidden = (z: ZoneId) => {
+    const out: Point[] = []
+    for (let y = 1; y < MAP_H; y++)
+      for (let x = 1; x < MAP_W - 1; x++)
+        if (zone[y]![x] === z && above[y]![x] !== EMPTY && walkable(x, y) && !path[y]![x] && nearPath(x, y)) out.push({ x, y })
+    return out
+  }
+  const berries = [...spread(woodsTrail, 8, 4), ...spread(hidden('woods'), 4, 6)]
+  const dewdrops = [
+    ...[{ x: 34, y: 10 }, { x: 8, y: 56 }, { x: 62, y: 70 }, { x: 58, y: 35 }].map(nudge),
+    ...spread(hidden('glade'), 1, 0),
+    ...spread(hidden('orchard'), 1, 0),
+  ]
+  const clearing: Point[] = []
+  for (let y = CLEARING.y - 7; y <= CLEARING.y + 7; y++)
+    for (let x = CLEARING.x - 8; x <= CLEARING.x + 8; x++) if (walkable(x, y) && zone[y]![x] === 'glade') clearing.push({ x, y })
+  const moonpetals = spread(clearing, 6, 3)
   const bells = [{ x: 65, y: 19 }, { x: 80, y: 13 }, { x: 72, y: 7 }].map(nudge)
 
   return {
@@ -427,6 +506,6 @@ export function buildWorld(seed = 20261001): World {
     above,
     deco,
     zone,
-    spawns: { player, fountain, npcs, houses, signs, carrots, berries, dewdrops, bells, lamps },
+    spawns: { player, fountain, npcs, houses, signs, carrots, berries, dewdrops, bells, lamps, moonpetals, views },
   }
 }

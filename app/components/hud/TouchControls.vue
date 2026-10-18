@@ -12,14 +12,14 @@ onMounted(() => {
   enabled.value = matchMedia('(pointer: coarse)').matches
 })
 
-function start(e: PointerEvent) {
+const start = (e: PointerEvent) => {
   pointer = e.pointerId
   ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
   origin = { x: r.left + r.width / 2, y: r.top + r.height / 2 }
   move(e)
 }
-function move(e: PointerEvent) {
+const move = (e: PointerEvent) => {
   if (!origin || e.pointerId !== pointer) return
   let dx = e.clientX - origin.x, dy = e.clientY - origin.y
   const d = Math.hypot(dx, dy)
@@ -28,14 +28,14 @@ function move(e: PointerEvent) {
   ui.touch.x = Math.abs(dx) > 8 ? dx / R : 0
   ui.touch.y = Math.abs(dy) > 8 ? dy / R : 0
 }
-function end() {
+const end = () => {
   origin = null
   pointer = -1
   knob.value = { x: 0, y: 0 }
   ui.touch.x = 0
   ui.touch.y = 0
 }
-function action() {
+const action = () => {
   if (ui.dialog) return // The dialog box handles its own taps.
   if (ui.reward || ui.ending) return
   bus.emit('touch-interact')

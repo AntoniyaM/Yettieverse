@@ -8,12 +8,12 @@ let game: Phaser.Game | null = null
 let timers: ReturnType<typeof setInterval>[] = []
 let lastCloud = ''
 
-function startAudio() {
+const startAudio = () => {
   unlockAudio()
   startMusic()
 }
 
-function onHidden() {
+const onHidden = () => {
   if (document.visibilityState === 'hidden') persist()
 }
 

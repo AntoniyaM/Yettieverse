@@ -4,7 +4,7 @@ import { readPrefs, ui, writePrefs } from '~/game/state'
 
 useHead({ title: 'Yettieverse' })
 
-function toggleMute() {
+const toggleMute = () => {
   ui.muted = !ui.muted
   setMuted(ui.muted)
   writePrefs({ muted: ui.muted })
@@ -14,7 +14,7 @@ provide('toggleMute', toggleMute)
 // Dev-only helpers, loaded on mount in dev. The branch (and module) vanish from production builds.
 let dev: typeof import('~/game/dev') | null = null
 
-function onKey(e: KeyboardEvent) {
+const onKey = (e: KeyboardEvent) => {
   // Tab opens the map, so keep the browser from moving focus.
   if (e.key === 'Tab') e.preventDefault()
   if (!ui.ready || ui.dialog || ui.reward || ui.ending || e.repeat) return

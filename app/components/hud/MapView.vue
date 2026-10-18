@@ -10,7 +10,7 @@ const label = (x: number, y: number) => at(Math.min(Math.max(x, 14), MAP_W - 14)
 </script>
 
 <template>
-  <div class="relative aspect-[96/80] overflow-hidden bg-[#4aa4e2]">
+  <div class="relative overflow-hidden bg-[#4aa4e2]" :style="{ aspectRatio: `${MAP_W} / ${MAP_H}` }">
     <img class="pixelated absolute inset-0 size-full" :src="ui.map.src" alt="">
     <template v-if="detailed">
       <span
