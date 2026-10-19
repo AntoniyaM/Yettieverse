@@ -15,7 +15,7 @@ const tracked = computed(() =>
     <div class="px-panel pointer-events-auto absolute top-3 left-3 flex items-center gap-2.5 py-1.5 pr-3 pl-1.5 text-base">
       <img class="pixelated size-10 rounded border-2 border-ink bg-mint" :src="ui.portraits.yettie" alt="">
       <div>
-        <div class="flex items-center gap-1"><img class="pixelated w-[15px]" :src="ui.portraits.spark" alt="">{{ save.sparkles }}</div>
+        <div class="flex items-center gap-1"><img class="pixelated w-[13px]" :src="ui.portraits.diamond" alt="Diamonds">{{ save.diamonds }}</div>
         <div class="flex items-center gap-1 text-[13px] opacity-75">👣 {{ save.steps.toLocaleString() }}</div>
       </div>
       <div v-if="ui.zone" class="border-l-2 border-dashed border-[#e3d3ae] pl-2.5 text-sm text-ink-soft compact:hidden">{{ ui.zone }}</div>

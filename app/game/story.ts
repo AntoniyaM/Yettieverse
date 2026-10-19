@@ -96,15 +96,15 @@ export const useFountain = async () => {
     await say([line('narrator', 'The fountain is bone dry. Only a few sad pebbles at the bottom.')])
     return
   }
-  if (save.sparkles < 5) {
-    await say([line('narrator', 'The fountain sparkles invitingly. You need 5 ✨ to make a wish.')])
+  if (save.diamonds < 5) {
+    await say([line('narrator', 'The fountain sparkles invitingly. You need 5 💎 to make a wish.')])
     return
   }
   const pick = await say([
-    { speaker: 'narrator', text: `The water shimmers. Make a wish? (you have ${save.sparkles} ✨)`, choices: ['Toss 5 ✨', 'Not now'] },
+    { speaker: 'narrator', text: `The water shimmers. Make a wish? (you have ${save.diamonds} 💎)`, choices: ['Toss 5 💎', 'Not now'] },
   ])
   if (pick !== 0) return
-  save.sparkles -= 5
+  save.diamonds -= 5
   save.wishes++
   bus.emit('sfx', 'wish')
   bus.emit('wish')

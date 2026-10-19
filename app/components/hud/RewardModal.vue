@@ -44,7 +44,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <h2 class="mb-3 text-[26px]">{{ ui.reward.title }}</h2>
         <ul class="mb-4 grid gap-2">
           <li
-            v-for="(x, i) in [{ icon: 'spark', label: `+${ui.reward.sparkles} sparkles`, emoji: false }, ...ui.reward.extras]"
+            v-for="(x, i) in [{ icon: 'diamond', label: `+${ui.reward.diamonds} diamonds`, emoji: false }, ...ui.reward.extras]"
             :key="x.label"
             class="flex animate-pop-in items-center gap-3 rounded-md border-2 border-ink bg-white px-3 py-2 text-left"
             :style="{ animationDelay: `${i * 0.15}s` }"

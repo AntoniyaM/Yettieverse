@@ -73,7 +73,7 @@ export class BootScene extends Phaser.Scene {
     const keys = [
       'npc-broc', 'npc-avo', 'npc-pear', 'npc-shelly', 'item-carrot', 'item-berry', 'item-dewdrop',
       'wear-chefhat', 'wear-crown', 'wear-bow', 'wear-shades', 'wear-nightcap', 'ind-available', 'ind-ready', 'ind-active',
-      'note', 'heart', 'spark',
+      'note', 'heart', 'spark', 'diamond',
     ]
     for (const k of keys) out[k] = this.textures.getBase64(k)
     out['npc-drip-0'] = this.textures.getBase64('npc-drip', 0)

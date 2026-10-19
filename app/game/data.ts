@@ -48,7 +48,7 @@ export const NPCS: Record<NpcId, { name: string; portrait: string; idle: string[
     portrait: 'npc-drip-1',
     idle: [
       "Had a glass of water today? Just asking. I'm literally made of it.",
-      'Toss 5 sparkles in the fountain and make a wish!',
+      'Toss 5 diamonds in the fountain and make a wish!',
     ],
   },
   mama: {
@@ -92,7 +92,7 @@ export interface QuestDef {
   requires: QuestId[]
   summary: string
   objective: Objective
-  reward: { sparkles: number; cosmetic?: CosmeticId; ability?: AbilityId }
+  reward: { diamonds: number; cosmetic?: CosmeticId; ability?: AbilityId }
   // Shown before the quest is unlocked.
   locked?: DialogLine[]
   intro: DialogLine[]
@@ -108,7 +108,7 @@ export const QUESTS: QuestDef[] = [
     requires: [],
     summary: "Pick 8 crunchy carrots for Chef Broc's Sunshine Soup. Carrot Meadow (west) has some, Blossom Orchard (far south-east) has the rest.",
     objective: { type: 'collect', item: 'carrot', count: 8, where: 'Carrot Meadow and Blossom Orchard' },
-    reward: { sparkles: 20, cosmetic: 'chefhat' },
+    reward: { diamonds: 20, cosmetic: 'chefhat' },
     intro: [
       ...say('broc', "Yettie! Thank goodness. I'm making my legendary Sunshine Soup and I'm OUT of carrots!"),
       ...say('broc', 'Could you pick 8 crunchy carrots? Carrot Meadow is down the road west.'),
@@ -129,7 +129,7 @@ export const QUESTS: QuestDef[] = [
     requires: [],
     summary: "Gather 12 wild strawberries in Whisper Woods for Granny Avo's jam. A few hide under the leaves, right beside the trails.",
     objective: { type: 'collect', item: 'berry', count: 12, where: 'Whisper Woods' },
-    reward: { sparkles: 20, ability: 'dash' },
+    reward: { diamonds: 20, ability: 'dash' },
     intro: [
       ...say('avo', "Oh, hello dearie! My old knees can't do Whisper Woods anymore."),
       ...say('avo', 'Would you gather 12 wild strawberries for my famous jam? They grow along the forest trails, up north-west.'),
@@ -149,7 +149,7 @@ export const QUESTS: QuestDef[] = [
     requires: [],
     summary: 'Take 2,500 steps anywhere on the island. Sir Shelly is counting. Slowly.',
     objective: { type: 'steps', count: 2500 },
-    reward: { sparkles: 20, cosmetic: 'shades' },
+    reward: { diamonds: 20, cosmetic: 'shades' },
     intro: [
       ...say('shelly', 'Ahem! Sir Shelly, champion walker, at your service.'),
       ...say('shelly', 'Movement is medicine, young Yettie. Take 2,500 steps, anywhere you like, and I shall reward you handsomely.'),
@@ -168,7 +168,7 @@ export const QUESTS: QuestDef[] = [
     requires: ['soup'],
     summary: 'Find the 6 magic Dewdrops (meadow, woods, shore, village, glade and orchard) and refill the plaza fountain.',
     objective: { type: 'collect', item: 'dewdrop', count: 6, where: 'all over the island' },
-    reward: { sparkles: 20, ability: 'floatie' },
+    reward: { diamonds: 20, ability: 'floatie' },
     locked: say('drip', '*sniff* ...The fountain is so dry. A hydration spirit without water. How embarrassing.'),
     intro: [
       ...say('drip', "Oh! Yettie! The fountain dried up, and I'm supposed to be the village's hydration spirit..."),
@@ -190,7 +190,7 @@ export const QUESTS: QuestDef[] = [
     requires: ['hydrate'],
     summary: 'Little Pip is stuck on the isle in the middle of Glimmer Lake (east). Swim out and bring Pip home.',
     objective: { type: 'flags', flags: ['pipFollowing'], label: 'Find Pip on the lake isle' },
-    reward: { sparkles: 25, ability: 'boots', cosmetic: 'bow' },
+    reward: { diamonds: 25, ability: 'boots', cosmetic: 'bow' },
     locked: say('mama', 'Have you seen Pip, sweetie? Pip was chasing butterflies over by the lake...'),
     intro: [
       ...say('mama', 'Yettie! Pip chased a butterfly and now they are stuck on the little isle in Glimmer Lake!'),
@@ -211,7 +211,7 @@ export const QUESTS: QuestDef[] = [
     requires: ['steps'],
     summary: 'Visit the 5 lookouts at the far corners of the island: woods, meadow, cove, glade and orchard. Stop and enjoy each view.',
     objective: { type: 'flags', flags: ['view0', 'view1', 'view2', 'view3', 'view4'], label: 'lookouts visited' },
-    reward: { sparkles: 30 },
+    reward: { diamonds: 30 },
     locked: say('shelly', 'Walk a little more first, young Yettie. Then I shall tell you of the Grand Tour.'),
     intro: [
       ...say('shelly', 'Now that your legs are warmed up: the Grand Tour! Five lookouts sit at the far corners of our island.'),
@@ -231,7 +231,7 @@ export const QUESTS: QuestDef[] = [
     requires: ['pip'],
     summary: 'Pick 6 Moonpetals in the clearing of Starlight Glade (far east). They only open at night. Nap at home to skip ahead.',
     objective: { type: 'collect', item: 'moonpetal', count: 6, where: 'Starlight Glade' },
-    reward: { sparkles: 30, cosmetic: 'nightcap' },
+    reward: { diamonds: 30, cosmetic: 'nightcap' },
     locked: say('mama', 'Pip has been so restless at bedtime lately...'),
     intro: [
       ...say('mama', "Pip is too excited to sleep after all that adventure. I'd love to brew some Moonpetal tea."),
@@ -252,7 +252,7 @@ export const QUESTS: QuestDef[] = [
     requires: ['pip'],
     summary: 'Stomp through the snowdrift gate and ring the 3 Wishing Bells on Frosty Peak.',
     objective: { type: 'flags', flags: ['bell0', 'bell1', 'bell2'], label: 'Wishing Bells rung' },
-    reward: { sparkles: 50, cosmetic: 'crown' },
+    reward: { diamonds: 50, cosmetic: 'crown' },
     locked: say('pear', 'Hmm, hmm. The Wishing Bells on Frosty Peak have been silent for years. Pity nobody owns snow boots...'),
     intro: [
       ...say('pear', 'Ah, snow boots! Splendid! Now listen carefully. This is very scientific.'),

@@ -41,7 +41,7 @@ const front = computed(() => ui.yettieFront)
                 alt=""
               >
             </div>
-            <div class="flex items-center gap-1"><img class="pixelated w-3.5" :src="ui.portraits.spark" alt=""> {{ save.sparkles }} sparkles</div>
+            <div class="flex items-center gap-1"><img class="pixelated w-[13px]" :src="ui.portraits.diamond" alt=""> {{ save.diamonds }} diamonds</div>
           </div>
 
           <div class="min-w-[240px] flex-1">

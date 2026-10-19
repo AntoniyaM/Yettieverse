@@ -12,7 +12,7 @@ const stats = computed(() => [
   { label: 'Steps', value: save.steps.toLocaleString() },
   { label: 'Play time', value: time.value },
   { label: 'Wishes', value: save.wishes },
-  { label: 'Sparkles', value: save.sparkles },
+  { label: 'Diamonds', value: save.diamonds },
 ])
 
 const close = () => {

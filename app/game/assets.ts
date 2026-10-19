@@ -36,6 +36,7 @@ export const IMAGES: Record<string, string> = {
   'ind-ready': '/sprites/ui/marker-ready.png',
   'ind-active': '/sprites/ui/marker-active.png',
   arrow: '/sprites/ui/arrow.png',
+  diamond: '/sprites/ui/diamond.png',
 }
 
 // Sprite sheets, with the size of one frame.

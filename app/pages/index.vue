@@ -137,7 +137,7 @@ const formatCode = (e: Event) => {
         <template v-if="mounted">
           <button v-if="existing" class="px-btn px-btn-teal flex flex-col items-center gap-1.5 px-4 py-3.5 text-xl/none" @click="navigateTo('/play')">
             ▶ Continue
-            <small class="text-xs opacity-95">{{ doneCount }}/{{ QUESTS.length }} quests · {{ existing.sparkles }} ✨ · {{ playTime }}</small>
+            <small class="text-xs opacity-95">{{ doneCount }}/{{ QUESTS.length }} quests · {{ existing.diamonds }} <img class="pixelated inline w-[13px] align-[-1px]" src="/sprites/ui/diamond.png" alt="diamonds"> · {{ playTime }}</small>
           </button>
           <button
             class="px-btn"

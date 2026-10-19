@@ -36,7 +36,7 @@ onMounted(async () => {
     setInterval(persist, 5000),
     // Cloud backup once a minute, only when something meaningful changed.
     setInterval(() => {
-      const sig = JSON.stringify([save.quests, save.inventory, save.sparkles, save.flags, save.wearing, Math.floor(save.steps / 100)])
+      const sig = JSON.stringify([save.quests, save.inventory, save.diamonds, save.flags, save.wearing, Math.floor(save.steps / 100)])
       if (sig !== lastCloud) {
         lastCloud = sig
         void pushCloud()

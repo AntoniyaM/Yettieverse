@@ -24,7 +24,7 @@ export interface SaveData {
   createdAt: number
   updatedAt: number
   player: { x: number; y: number; facing: Facing } | null
-  sparkles: number
+  diamonds: number
   steps: number
   playTime: number
   // Day clock, from 0 to 1.
@@ -58,7 +58,7 @@ export const newSave = (): SaveData => {
     createdAt: now,
     updatedAt: now,
     player: null,
-    sparkles: 0,
+    diamonds: 0,
     steps: 0,
     playTime: 0,
     clock: 0.12,
@@ -168,7 +168,7 @@ export interface MapMarker {
 }
 export interface RewardView {
   title: string
-  sparkles: number
+  diamonds: number
   extras: { icon: string; label: string; emoji?: boolean }[]
 }
 
@@ -292,8 +292,8 @@ export const completeQuest = (id: QuestId) => {
   const q = questDef(id)
   if (q.objective.type === 'collect') save.inventory[q.objective.item] -= q.objective.count
   save.quests[id] = 'done'
-  const { sparkles, cosmetic, ability } = q.reward
-  save.sparkles += sparkles
+  const { diamonds, cosmetic, ability } = q.reward
+  save.diamonds += diamonds
   const extras: RewardView['extras'] = []
   if (cosmetic) {
     if (!save.owned.includes(cosmetic)) save.owned.push(cosmetic)
@@ -305,7 +305,7 @@ export const completeQuest = (id: QuestId) => {
     save.abilities[ability] = true
     extras.push({ icon: ABILITIES[ability].icon, label: `${ABILITIES[ability].name}: ${ABILITIES[ability].blurb}`, emoji: true })
   }
-  ui.reward = { title: q.title, sparkles, extras }
+  ui.reward = { title: q.title, diamonds, extras }
   bus.emit('sfx', 'complete')
   bus.emit('quests')
   refreshQuests()
