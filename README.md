@@ -16,7 +16,7 @@ pnpm build && node .output/server/index.mjs
 | Game | **Phaser 4.2** (WebGL, Arcade physics, tilemaps) | Lazy-loaded only on `/play` |
 | HUD / dialogs | **Vue** components over the canvas | They read the same reactive state the game writes |
 | Saves | `localStorage` autosave + **Nitro** `/api/saves/:code` → **Firestore** | Cloud backup by a shareable code like `ABCD-2345`, no accounts |
-| Fonts | Jersey 10 (UI) and Pixelify Sans (logo), self-hosted in `public/fonts` | Both OFL-licensed |
+| Fonts | Jersey 10 (UI), self-hosted in `public/fonts` | OFL-licensed. The title is pixel art drawn from Yazio Sans, stored as an SVG of squares (`public/sprites/ui/title.svg`) |
 | Art | PNGs in `public/sprites/` and `public/tiles/` | One file per sprite, plus one tileset; edit them in any pixel-art editor |
 | Audio | Generated in code | Chiptune SFX and music via WebAudio, no audio files |
 

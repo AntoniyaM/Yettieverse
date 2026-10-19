@@ -6,12 +6,6 @@
   font-display: swap;
   size-adjust: 128%;
 }
-@font-face {
-  font-family: 'Yv Logo';
-  src: url('/fonts/pixelify-sans-700.woff2') format('woff2');
-  font-weight: 700;
-  font-display: swap;
-}
 
 /* Small screens and touch devices get the compact HUD layout. */
 @custom-variant compact {
@@ -38,7 +32,6 @@
   --color-grass: #6abe4b;
 
   --font-pixel: 'Yv Text', ui-monospace, monospace;
-  --font-logo: 'Yv Logo', 'Yv Text', monospace;
 
   --text-xs--line-height: normal;
   --text-sm--line-height: normal;
@@ -67,7 +60,7 @@
 
   @keyframes drift {
     to {
-      transform: translateX(calc(100vw + 400px));
+      transform: translateX(calc(100vw + 600px));
     }
   }
 
