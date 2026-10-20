@@ -2,6 +2,12 @@
 
 A cozy top-down explorer pixel-art adventure starring Yettie. Help them collect snacks, swim the lake, climb Frosty Peak and ring the Wishing Bells.
 
+**🎮 Play here: https://ai-playground.marioniya.space**
+
+[![Yettie in a chef hat on the village plaza, next to the flowing fountain and Drip, two quests in the tracker and the island minimap](screenshot.png)](https://ai-playground.marioniya.space/)
+
+Run it locally:
+
 ```sh
 pnpm install
 pnpm dev
